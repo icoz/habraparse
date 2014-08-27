@@ -5,7 +5,7 @@ from lxml import etree, html
 import requests
 
 
-__author__ = 'vlad'
+__author__ = 'icoz'
 
 
 class HabraTopic(object):

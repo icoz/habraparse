@@ -5,7 +5,19 @@ from lxml import html
 import requests
 
 
-__author__ = 'vlad'
+__author__ = 'icoz'
+
+
+def get_pages(doc):
+    pages_data = doc.xpath("//ul[@id='nav-pages']//a[last()]")
+    # print(pages_data)
+    if len(pages_data) > 0:
+        pg_text = str(pages_data[-1].attrib['href']).split('/')[-2]
+        # print('pages=',pg_text[4:])
+        pages = int(pg_text[4:])
+    else:
+        pages = 1
+    return pages
 
 
 class HabraUser(object):
@@ -126,7 +138,7 @@ class HabraUser(object):
         self._user['karma'] = self._user_karma
 
 
-    def _getFavorites(self, show_progress=False):
+    def _getFavorites(self):
         """
         Returns list of ('topic_name', 'topic_url')
 
@@ -138,14 +150,14 @@ class HabraUser(object):
         url = self._genFavoritesUrlByUser(self._username)
         doc = html.document_fromstring(requests.get(url).text)
         out = dict()
-        pages = int(doc.xpath("//ul[@id='nav-pages']//noindex/a")[-1].attrib['href'][-3:-1])
+        pages = get_pages(doc)
         favs = doc.xpath("//div[@class='user_favorites']//a[@class='post_title']")
         for f in favs:
             out[f.text] = f.attrib['href'][-7:-1]
         for p in range(2, pages):
             url = 'http://habrahabr.ru/users/{0}/favorites/page{1}/'.format(self._username, p)
-            if show_progress:
-                print('parsing page{0}... url={1}'.format(p, url))
+            # if show_progress:
+            # print('parsing page{0}... url={1}'.format(p, url))
             doc = html.document_fromstring(requests.get(url).text)
             favs = doc.xpath("//div[@class='user_favorites']//a[@class='post_title']")
             for f in favs:
@@ -159,14 +171,7 @@ class HabraUser(object):
             raise IOError('doc not found. URL = {}'.format(url))
         doc = html.document_fromstring(req.text)
         out = dict()
-        pages_data = doc.xpath("//ul[@id='nav-pages']//a[last()]")
-        # print(pages_data)
-        if len(pages_data) > 0:
-            pg_text = str(pages_data[-1].attrib['href']).split('/')[-2]
-            # print('pages=',pg_text[4:])
-            pages = int(pg_text[4:])
-        else:
-            pages = 1
+        pages = get_pages(doc)
         posts = doc.xpath("//div[@class='posts_list']//a[@class='post_title']")
         for f in posts:
             # print(f.text)
