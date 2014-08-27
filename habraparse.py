@@ -1,36 +1,31 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-from unittest import TestCase
+from pprint import pprint
 
-from lxml import html, etree
-import requests
+from habr.topic import HabraTopic
+from habr.user import HabraUser
 
 
 __author__ = 'icoz'
 
-'''
-topic has:
-post_title .text
-post shortcuts_item .id = post_<id>
-hubs[] -> .text
-'''
+
+def main():
+    pass
+    hu = HabraUser('icoz')
+    print('getting favorites')
+    favs = hu.favorites()
+    # pprint(favs)
+    for name in favs:
+        if int(favs[name]) > 220000:
+            print('===================')
+            print('parsing {}...'.format(name))
+            print('===================')
+            t = HabraTopic(favs[name])
+            pprint(t.title())
+            pprint(t.author())
+            pprint(t.rating())
+            pprint(t.comments_count())
 
 
-
-
-
-class TestParse(TestCase):
-    def setUp(self):
-        pass
-
-    def test_parseTopic(self):
-        url = 'http://habrahabr.ru/post/208802/'
-        d = parseTopic(url)
-        self.assertEqual(d['author'], 'icoz')
-        d['hubs'].sort()
-        self.assertSequenceEqual(d['hubs'], [('PDF', 'http://habrahabr.ru/hub/pdf/'),
-                                             ('Python', 'http://habrahabr.ru/hub/python/')])
-        self.assertEqual(d['title'], 'Экспорт Избранного на Хабре в PDF')
-        # d['comments']
-        print(d['text'])
-
+if __name__ == '__main__':
+    main()
