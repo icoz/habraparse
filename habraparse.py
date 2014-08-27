@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from unittest import TestCase
 
-from lxml import html
+from lxml import html, etree
 import requests
 
 
@@ -16,16 +16,20 @@ hubs[] -> .text
 '''
 
 
-def getUserName(doc):
-    username = ''
-
-
 def getUserCompanyList(doc):
-    return list()
+    out = []
+    cmpns = doc.xpath("//div[@class='user_profile']/dl[@id='favorite_companies_list']//a")
+    for company in cmpns:
+        out.append((company.text, company.attrib['href']))
+    return out
 
 
 def getUserHubList(doc):
-    return list()
+    out = []
+    hubs = doc.xpath("//div[@class='user_profile']/dl[@class='hubs_list']//a[@class='cross']")
+    for hub in hubs:
+        out.append((hub.text, hub.attrib['href']))
+    return out
 
 
 def parseUserpage(url):
@@ -76,23 +80,21 @@ def parseTopic(url):
     post = dict()
     topic = requests.get(url).text
     doc = html.document_fromstring(topic)
-    post['author'] = getTopicAuthor(doc)
-    post['hubs'] = getTopicHubs(doc)
-    post['title'] = getTopicTitle(doc)
-    post['text'] = getTopicText(doc)
+    post['hubs'] = []
+    hubs = doc.xpath("//div[@class='post_show']//div[@class='hubs']/a")
+    for h in hubs:
+        post['hubs'].append((h.text, h.attrib['href']))
+    post['title'] = doc.xpath("//span[@class='post_title']")[0].text
+    post['author'] = doc.xpath("//div[@class='author']/a")[0].text
+    post['text'] = etree.tostring(doc.xpath("//div[@class='content html_format']")[0], pretty_print=True)
     post['comments'] = getTopicComments(doc)
+    #
+    # post['author'] = getTopicAuthor(doc)
+    # # post['hubs'] = getTopicHubs(doc)
+    # post['title'] = getTopicTitle(doc)
+    # post['text'] = getTopicText(doc)
+    # post['comments'] = getTopicComments(doc)
     return post
-
-
-def getTopicHubs(topic):
-    try:
-        hubs = []
-        div = topic.find_class('hubs')[0]
-        for link in div.iterlinks():
-            hubs.append(link[0].text)
-        return hubs
-    except:
-        return None
 
 
 def getTopicAuthor(topic):
@@ -114,15 +116,81 @@ def getTopicTitle(topic):
 
 
 def getTopicComments(topic):
-    pass
-
+    # TODO: bug in class - space added
+    comments = topic.xpath("//div[@class='comments_list ']//div[@class='comment_item']")
+    print(len(comments))
+    cmnts = []
+    for c in comments:
+        cmnts.append(etree.tostring(c))
+    return cmnts
 
 def getUserInfo(user):
     pass
 
 
-def getUrlForUsername(username):
+def genUrlForUsername(username):
+    '''
+    Generates user-page URL using username
+
+    :param id:
+        string with username
+    :return:
+        string with URL
+    '''
     return 'http://habrahabr.ru/users/{}/'.format(username)
+
+def genTopicUrlByID(id):
+    '''
+    Generates topic URL for id
+
+    :param id:
+        string or int
+    :return:
+        string with URL
+    '''
+    return 'http://habrahabr.ru/post/{}/'.format(id)
+
+
+def genFavoritesUrlByUser(username):
+    '''
+    Generates favirites URL using username
+
+    :param id:
+        string with username
+    :return:
+        string with URL
+    '''
+    return genUrlForUsername(username)+'favorites/'
+        # 'http://habrahabr.ru/users/{}/favorites'.format(username)
+
+
+def getFavForUsername(username):
+    """
+    Returns list of ('topic_name', 'topic_url')
+
+    :param username:
+        string of username, ex. 'some_user'
+    :return:
+        list of ('topic_name', 'topic_id')
+    """
+    url = genFavoritesUrlByUser(username)
+    doc = html.document_fromstring(requests.get(url).text)
+    out = []
+    pages = int(doc.xpath("//ul[@id='nav-pages']//noindex/a")[-1].attrib['href'][-3:-1])
+    favs = doc.xpath("//div[@class='user_favorites']//a[@class='post_title']")
+    for f in favs:
+        # print(f.text, f.attrib['href'][-7:-1])
+        out.append((f.text, f.attrib['href'][-7:-1]))
+    for p in range(2, pages):
+        url = 'http://habrahabr.ru/users/{0}/favorites/page{1}/'.format(username, p)
+        # print('parsing page{0}... url={1}'.format(p,url))
+        doc = html.document_fromstring(requests.get(url).text)
+        favs = doc.xpath("//div[@class='user_favorites']//a[@class='post_title']")
+        for f in favs:
+            # print(f.text, f.attrib['href'][-7:-1])
+            out.append((f.text, f.attrib['href'][-7:-1]))
+    out.sort()
+    return out
 
 
 class TestParse(TestCase):
@@ -134,12 +202,23 @@ class TestParse(TestCase):
         d = parseTopic(url)
         self.assertEqual(d['author'], 'icoz')
         d['hubs'].sort()
-        self.assertSequenceEqual(d['hubs'], ['PDF', 'Python'])
+        self.assertSequenceEqual(d['hubs'], [('PDF', 'http://habrahabr.ru/hub/pdf/'),
+                                             ('Python', 'http://habrahabr.ru/hub/python/')])
         self.assertEqual(d['title'], 'Экспорт Избранного на Хабре в PDF')
         # d['comments']
+        print(d['text'])
 
     def test_parseUserpage(self):
         username = 'icoz'
-        url = getUrlForUsername(username)
+        url = genUrlForUsername(username)
         user = parseUserpage(url)
         print(user)
+
+    def test_favs(self):
+        import pprint
+
+        out = getFavForUsername('icoz')
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint(out)
+
+
