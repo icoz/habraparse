@@ -153,7 +153,8 @@ class HabraUser(object):
         pages = get_pages(doc)
         favs = doc.xpath("//div[@class='user_favorites']//a[@class='post_title']")
         for f in favs:
-            out[f.text] = f.attrib['href'][-7:-1]
+            # out[f.text] = f.attrib['href'][-7:-1]
+            out[f.text] = str(f.attrib['href']).split('/')[-2]
         for p in range(2, pages):
             url = 'http://habrahabr.ru/users/{0}/favorites/page{1}/'.format(self._username, p)
             # if show_progress:
@@ -161,7 +162,8 @@ class HabraUser(object):
             doc = html.document_fromstring(requests.get(url).text)
             favs = doc.xpath("//div[@class='user_favorites']//a[@class='post_title']")
             for f in favs:
-                out[f.text] = f.attrib['href'][-7:-1]
+                # out[f.text] = f.attrib['href'][-7:-1]
+                out[f.text] = str(f.attrib['href']).split('/')[-2]
         return out
 
     def _getUserPosts(self):
@@ -175,7 +177,8 @@ class HabraUser(object):
         posts = doc.xpath("//div[@class='posts_list']//a[@class='post_title']")
         for f in posts:
             # print(f.text)
-            out[f.text] = f.attrib['href'][-7:-1]
+            out[f.text] = str(f.attrib['href']).split('/')[-2]
+            # out[f.text] = f.attrib['href'][-7:-1]
         for p in range(2, pages):
             url = self._genUrlForUsername(self._username) + 'topics/page{0}/'.format(p)
             req = requests.get(url)
@@ -184,7 +187,7 @@ class HabraUser(object):
             doc = html.document_fromstring(req.text)
             posts = doc.xpath("//div[@class='posts_list']//a[@class='post_title']")
             for f in posts:
-                out[f.text] = f.attrib['href'][-7:-1]
+                out[f.text] = str(f.attrib['href']).split('/')[-2]
         return out
 
 
