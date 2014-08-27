@@ -1,3 +1,4 @@
+from copy import deepcopy
 from unittest import TestCase
 
 from lxml import etree, html
@@ -45,26 +46,25 @@ class HabraTopic(object):
         for c in comments:
             self.post['comments'].append(etree.tostring(c))
 
-    # TODO: deepcopy
     def author(self):
-        return self.post['author']
+        return deepcopy(self.post['author'])
 
     def text(self):
-        return self.post['text']
+        return deepcopy(self.post['text'])
 
 
     def title(self):
-        return self.post['title']
+        return deepcopy(self.post['title'])
 
 
     def rating(self):
-        return self.post['rating']
+        return deepcopy(self.post['rating'])
 
     def comments(self):
-        return self.post['comments']
+        return deepcopy(self.post['comments'])
 
     def comments_count(self):
-        return self.post['comments_count']
+        return deepcopy(self.post['comments_count'])
 
 
 import pprint
@@ -76,6 +76,15 @@ class TestHabraTopic(TestCase):
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(t.author())
         self.assertEqual(t.author(), 'yaklamm')
+        pp.pprint(t.title())
+        pp.pprint(t.post['comments_count'])
+        pp.pprint(t.post['rating'])
+
+    def test_topic2(self):
+        t = HabraTopic(208802)
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint(t.author())
+        self.assertEqual(t.author(), 'icoz')
         pp.pprint(t.title())
         pp.pprint(t.post['comments_count'])
         pp.pprint(t.post['rating'])
