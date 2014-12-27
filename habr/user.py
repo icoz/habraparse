@@ -41,13 +41,23 @@ class HabraUser(object):
             self._user_posts = self._getUserPosts()
 
     def favorites(self):
+        """
+        Returns dict by name of topic_id
+
+        :param username:
+            string of username, ex. 'some_user'
+        :return:
+            dict(name) = id
+        """
         if not self._user_favorites_loaded:
             self._user_favorites = self._getFavorites()
+            self._user_favorites_loaded = True
         return deepcopy(self._user_favorites)
 
     def user_posts(self):
         if not self._user_posts_loaded:
             self._user_posts = self._getUserPosts()
+            self._user_posts_loaded = True
         return deepcopy(self._user_posts)
 
     def profile(self):
@@ -140,12 +150,12 @@ class HabraUser(object):
 
     def _getFavorites(self):
         """
-        Returns list of ('topic_name', 'topic_url')
+        Returns dict by name of topic_id
 
         :param username:
             string of username, ex. 'some_user'
         :return:
-            list of ('topic_name', 'topic_id')
+            dict(name) = id
         """
         url = self._genFavoritesUrlByUser(self._username)
         doc = html.document_fromstring(requests.get(url).text)
@@ -153,7 +163,8 @@ class HabraUser(object):
         pages = get_pages(doc)
         favs = doc.xpath("//div[@class='user_favorites']//a[@class='post_title']")
         for f in favs:
-            # out[f.text] = f.attrib['href'][-7:-1]
+            # out[f.text] = str(f.attrib['href']).split('/')[-2]
+            # topic_id =
             out[f.text] = str(f.attrib['href']).split('/')[-2]
         for p in range(2, pages):
             url = 'http://habrahabr.ru/users/{0}/favorites/page{1}/'.format(self._username, p)

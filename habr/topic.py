@@ -8,6 +8,10 @@ import requests
 __author__ = 'icoz'
 
 
+class PostDeleted(Exception):
+    pass
+
+
 class HabraTopic(object):
     def __init__(self, topic_id):
         '''
@@ -16,11 +20,17 @@ class HabraTopic(object):
         :return:
         '''
         if isinstance(topic_id, (str, int)):
-            self.url = str('http://habrahabr.ru/post/{}/').format(topic_id)
+            self.url = self.getTopicUrl(topic_id)
             self.post = dict()
+            self._topic_id = topic_id
             self._parseTopic()
         else:
             raise TypeError('topic_id must be str or int!')
+
+
+    @staticmethod
+    def getTopicUrl(topic_id):
+        return str('http://habrahabr.ru/post/{}/').format(topic_id)
 
     def _parseTopic(self):
         '''
@@ -35,16 +45,20 @@ class HabraTopic(object):
         hubs = doc.xpath("//div[@class='post_show']//div[@class='hubs']/a")
         for h in hubs:
             self.post['hubs'].append((h.text, h.attrib['href']))
-        self.post['title'] = doc.xpath("//span[@class='post_title']")[0].text
+        post_title = doc.xpath("//span[@class='post_title']")
+        if len(post_title) == 0:
+            raise PostDeleted
+        self.post['title'] = post_title[0].text
         self.post['author'] = doc.xpath("//div[@class='author']/a")[0].text
         self.post['rating'] = doc.xpath("//div[@class='infopanel ']//span[@class='score']")[0].text
-        self.post['text'] = etree.tostring(doc.xpath("//div[@class='content html_format']")[0], pretty_print=True)
+        self.post['text'] = etree.tostring(doc.xpath("//div[@class='content html_format']")[0], pretty_print=True,
+                                           method='html').decode('utf-8')
         self.post['comments'] = []
         # bug in class 'comments_list ' - space added
         comments = doc.xpath("//div[@class='comments_list ']//div[@class='comment_item']")
         self.post['comments_count'] = len(comments)
         for c in comments:
-            self.post['comments'].append(etree.tostring(c))
+            self.post['comments'].append(etree.tostring(c, pretty_print=True, method='html').decode('utf-8'))
 
     def author(self):
         return deepcopy(self.post['author'])
@@ -65,6 +79,9 @@ class HabraTopic(object):
 
     def comments_count(self):
         return deepcopy(self.post['comments_count'])
+
+    def post_id(self):
+        return self._topic_id
 
 
 import pprint
