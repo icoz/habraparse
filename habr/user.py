@@ -29,7 +29,7 @@ class TMUser(object):
         self._user_profile = dict()
         self._user_activity = dict()
 
-        print(self._genUrlForUsername(username))
+        # print(self._genUrlForUsername(username))
         req_data = requests.get(self._genUrlForUsername(username)).text
         self._doc = html.document_fromstring(req_data)
         self._parseUserpage()
