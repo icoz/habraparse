@@ -20,14 +20,16 @@ def get_pages(doc):
     return pages
 
 
-class HabraUser(object):
-    def __init__(self, username, need_favorites=False, need_user_posts=False):
+class TMUser(object):
+    def __init__(self, username, need_favorites=False, need_user_posts=False, domain='habrahabr.ru'):
+        self._domain = domain
         self._username = username
         self._user = dict()
         self._user_karma = dict()
         self._user_profile = dict()
         self._user_activity = dict()
 
+        print(self._genUrlForUsername(username))
         req_data = requests.get(self._genUrlForUsername(username)).text
         self._doc = html.document_fromstring(req_data)
         self._parseUserpage()
@@ -79,7 +81,6 @@ class HabraUser(object):
             string with URL
         '''
         return self._genUrlForUsername(username) + 'favorites/'
-        # 'http://habrahabr.ru/users/{}/favorites'.format(username)
 
     def _genUrlForUsername(self, username):
         '''
@@ -90,7 +91,7 @@ class HabraUser(object):
         :return:
             string with URL
         '''
-        return 'http://habrahabr.ru/users/{}/'.format(username)
+        return 'http://{domain}/users/{username}/'.format(domain=self._domain, username=username)
 
 
     def _getUserCompanyList(self):
@@ -110,36 +111,48 @@ class HabraUser(object):
 
 
     def _parseUserpage(self):
-
+        # print(self._doc)
         p_tags = self._doc.xpath("//div[@class='user_profile']//ul[@id='people-tags']//a/span")
         registration_date = self._doc.xpath("//div[@class='user_profile']//dd[@class='grey']")[0].text
 
-        self._user['username'] = self._doc.xpath("//div[@class='user_header']/h2/a").pop().text
-        self._user_karma['karma'] = float(
-            self._doc.xpath("//div[@class='karma']//div[@class='num']").pop().text.replace(',', '.'))
-        self._user_karma['karma_vote'] = int(
-            self._doc.xpath("//div[@class='karma']/div[@class='votes']").pop().text.split(' ')[0])
-        self._user_karma['rating'] = float(
-            self._doc.xpath("//div[@class='rating']/div[@class='num']").pop().text.replace(',', '.'))
-        self._user_profile['fullname'] = self._doc.xpath(
-            "//div[@class='user_profile']/div[@class='fullname']").pop().text.strip()
-        self._user_karma['rating_place'] = int(
-            self._doc.xpath("//div[@class='user_profile']/div[@class='rating-place']").pop().text.split('-')[0])
-        if len(self._doc.xpath("//div[@class='user_profile']//dd[@class='bday']")):
-            self._user_profile['birthday'] = self._doc.xpath("//div[@class='user_profile']//dd[@class='bday']")[0].text
-        self._user_profile['country'] = self._doc.xpath("//div[@class='user_profile']//dd/a[@class='country-name']")[
-            0].text
-        self._user_profile['region'] = self._doc.xpath("//div[@class='user_profile']//dd/a[@class='region']")[0].text
-        self._user_profile['city'] = self._doc.xpath("//div[@class='user_profile']//dd/a[@class='city']")[0].text
+        tmp = self._doc.xpath("//div[@class='user_header']/h2/a")
+        self._user['username'] = tmp.pop().text if len(tmp) else ''
+
+        tmp = self._doc.xpath("//div[@class='karma']//div[@class='num']")
+        self._user_karma['karma'] = float(tmp.pop().text.replace(',', '.')) if len(tmp) else 0.0
+
+        tmp = self._doc.xpath("//div[@class='karma']/div[@class='votes']")
+        self._user_karma['karma_vote'] = int(tmp.pop().text.split(' ')[0]) if len(tmp) else 0
+
+        tmp = self._doc.xpath("//div[@class='rating']/div[@class='num']")
+        self._user_karma['rating'] = float(tmp.pop().text.replace(',', '.')) if len(tmp) else 0.0
+
+        tmp = self._doc.xpath("//div[@class='user_profile']/div[@class='fullname']")
+        self._user_profile['fullname'] = tmp.pop().text.strip() if len(tmp) else ''
+
+        tmp = self._doc.xpath("//div[@class='user_profile']/div[@class='rating-place']")
+        self._user_karma['rating_place'] = int(tmp.pop().text.split('-')[0]) if len(tmp) else 0
+
+        tmp = self._doc.xpath("//div[@class='user_profile']//dd[@class='bday']")
+        self._user_profile['birthday'] = tmp[0].text if len(tmp) else ''
+
+        tmp = self._doc.xpath("//div[@class='user_profile']//dd/a[@class='country-name']")
+        self._user_profile['country'] = tmp[0].text if len(tmp) else ''
+        tmp = self._doc.xpath("//div[@class='user_profile']//dd/a[@class='region']")
+        self._user_profile['region'] = tmp[0].text if len(tmp) else ''
+        tmp = self._doc.xpath("//div[@class='user_profile']//dd/a[@class='city']")
+        self._user_profile['city'] = tmp[0].text if len(tmp) else ''
         self._user_profile['people_tags'] = [i for i in map(lambda x: x.text, p_tags)]
         self._user_profile['registraion_date'] = registration_date[:registration_date.index('\r\n')]
 
-        self._user_activity['followers_count'] = int(
-            self._doc.xpath("//div[@class='stats']/div[@id='followers_count']/a").pop().text.split(' ')[0])
-        self._user_activity['posts_count'] = int(
-            self._doc.xpath("//div[@class='stats']/div[@class='item posts_count']/a").pop().text.split(' ')[0])
-        self._user_activity['comments_count'] = int(
-            self._doc.xpath("//div[@class='stats']/div[@class='item comments_count']/a").pop().text.split(' ')[0])
+        tmp = self._doc.xpath("//div[@class='stats']/div[@id='followers_count']/a")
+        self._user_activity['followers_count'] = int(tmp.pop().text.split(' ')[0]) if len(tmp) else 0
+
+        tmp = self._doc.xpath("//div[@class='stats']/div[@class='item posts_count']/a")
+        self._user_activity['posts_count'] = int(tmp.pop().text.split(' ')[0]) if len(tmp) else 0
+
+        tmp = self._doc.xpath("//div[@class='stats']/div[@class='item comments_count']/a")
+        self._user_activity['comments_count'] = int(tmp.pop().text.split(' ')[0]) if len(tmp) else 0
 
         self._user['company_list'] = self._getUserCompanyList()
         self._user['hubs_list'] = self._getUserHubList()
@@ -167,7 +180,7 @@ class HabraUser(object):
             # topic_id =
             out[f.text] = str(f.attrib['href']).split('/')[-2]
         for p in range(2, pages):
-            url = 'http://habrahabr.ru/users/{0}/favorites/page{1}/'.format(self._username, p)
+            url = 'http://{0}/users/{1}/favorites/page{2}/'.format(self._domain, self._username, p)
             # if show_progress:
             # print('parsing page{0}... url={1}'.format(p, url))
             doc = html.document_fromstring(requests.get(url).text)
@@ -202,6 +215,21 @@ class HabraUser(object):
         return out
 
 
+class HabraUser(TMUser):
+    def __init__(self, username, need_favorites=False, need_user_posts=False):
+        super().__init__(username, need_favorites, need_user_posts=need_user_posts, domain='habrahabr.ru')
+
+
+class GeektimesUser(TMUser):
+    def __init__(self, username, need_favorites=False, need_user_posts=False):
+        super().__init__(username, need_favorites, need_user_posts=need_user_posts, domain='geektimes.ru')
+
+
+class MegamozgUser(TMUser):
+    def __init__(self, username, need_favorites=False, need_user_posts=False):
+        super().__init__(username, need_favorites, need_user_posts=need_user_posts, domain='megamozg.ru')
+
+
 import pprint
 
 
@@ -225,7 +253,46 @@ class Test_HabraUser(TestCase):
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint('userposts=')
         pp.pprint(hu.user_posts())
-        # out = getFavForUsername('icoz')
-        # pp = pprint.PrettyPrinter(indent=4)
-        # pp.pprint(out)
+
+
+class Test_GeektimesUser(TestCase):
+    def setUp(self):
+        self.hu = GeektimesUser('icoz')
+        pass
+
+    def test_parseUserpage(self):
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint(self.hu.activity())
+        pp.pprint(self.hu.profile())
+        pp.pprint(self.hu.karma())
+
+    # def test_favs(self):
+    # pp = pprint.PrettyPrinter(indent=4)
+
+    def test_user_posts(self):
+        hu = GeektimesUser('Zelenyikot')
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint('userposts=')
+        pp.pprint(hu.user_posts())
+
+
+class Test_MegamozgUser(TestCase):
+    def setUp(self):
+        self.hu = MegamozgUser('icoz')
+        pass
+
+    def test_parseUserpage(self):
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint(self.hu.activity())
+        pp.pprint(self.hu.profile())
+        pp.pprint(self.hu.karma())
+
+    # def test_favs(self):
+    # pp = pprint.PrettyPrinter(indent=4)
+
+    def test_user_posts(self):
+        hu = MegamozgUser('Zelenyikot')
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint('userposts=')
+        pp.pprint(hu.user_posts())
 

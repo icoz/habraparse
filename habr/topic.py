@@ -12,25 +12,27 @@ class PostDeleted(Exception):
     pass
 
 
-class HabraTopic(object):
-    def __init__(self, topic_id):
+class TMTopic(object):
+    def __init__(self, topic_id, domain='habrahabr.ru'):
         '''
         init
         :param topic_id: str or int with topic id
         :return:
         '''
+        self.domain = domain
         if isinstance(topic_id, (str, int)):
-            self.url = self.getTopicUrl(topic_id)
             self.post = dict()
             self._topic_id = topic_id
+            self.url = self._getTopicUrl(topic_id)
             self._parseTopic()
         else:
             raise TypeError('topic_id must be str or int!')
 
+    def getTopicUrl(self):
+        return self.url
 
-    @staticmethod
-    def getTopicUrl(topic_id):
-        return str('http://habrahabr.ru/post/{}/').format(topic_id)
+    def _getTopicUrl(self, topic_id):
+        return str('http://{domain}/post/{tid}/').format(domain=self.domain, tid=topic_id)
 
     def _parseTopic(self):
         '''
@@ -84,6 +86,19 @@ class HabraTopic(object):
         return self._topic_id
 
 
+class HabraTopic(TMTopic):
+    def __init__(self, topic_id):
+        super().__init__(topic_id, domain='habrahabr.ru')
+
+class GeektimesTopic(TMTopic):
+    def __init__(self, topic_id):
+        super().__init__(topic_id, domain='geektimes.ru')
+
+class MegamozgTopic(TMTopic):
+    def __init__(self, topic_id):
+        super().__init__(topic_id, domain='megamozg.ru')
+
+
 import pprint
 
 
@@ -102,6 +117,45 @@ class TestHabraTopic(TestCase):
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(t.author())
         self.assertEqual(t.author(), 'icoz')
+        pp.pprint(t.title())
+        pp.pprint(t.post['comments_count'])
+        pp.pprint(t.post['rating'])
+
+
+class TestGTTopic(TestCase):
+    def test_topic(self):
+        t = GeektimesTopic(243447)
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint(t.author())
+        self.assertEqual(t.author(), 'SOUNDPAL')
+        pp.pprint(t.title())
+        pp.pprint(t.post['comments_count'])
+        pp.pprint(t.post['rating'])
+
+    def test_topic2(self):
+        t = GeektimesTopic(245130)
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint(t.author())
+        self.assertEqual(t.author(), 'Robotex')
+        pp.pprint(t.title())
+        pp.pprint(t.post['comments_count'])
+        pp.pprint(t.post['rating'])
+
+class TestMMTopic(TestCase):
+    def test_topic(self):
+        t = MegamozgTopic(418)
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint(t.author())
+        self.assertEqual(t.author(), 'Kirilkin')
+        pp.pprint(t.title())
+        pp.pprint(t.post['comments_count'])
+        pp.pprint(t.post['rating'])
+
+    def test_topic2(self):
+        t = MegamozgTopic(8568)
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint(t.author())
+        self.assertEqual(t.author(), 'jasiejames')
         pp.pprint(t.title())
         pp.pprint(t.post['comments_count'])
         pp.pprint(t.post['rating'])
