@@ -138,6 +138,8 @@ def save_all_favs_for_user(username, out_dir, save_in_html=True, with_comments=F
         # topic = HabraTopic(topic_id)
         if save_by_name:
             t_name = topic_name.replace('/', '_').replace('\\', '_').replace('!', '.')
+            if len(t_name) > 250:
+                t_name = t_name[:250]
             filename = '{dir}/{name}.{filetype}'.format(dir=out_dir, name=t_name, filetype=filetype)
         else:
             filename = '{dir}/{id}.{filetype}'.format(dir=out_dir, id=topic_id, filetype=filetype)
