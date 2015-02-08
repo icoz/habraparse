@@ -29,3 +29,6 @@ Changelog:
 *01.02.2015*
 - исправлены ошибки
 - добавлена поддержка Geektimes.ru и Megamozg.ru
+
+Распространяется по лицензии GNU GPL v2.0.
+Under license GNU GPL v2.0
