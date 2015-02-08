@@ -51,10 +51,14 @@ class TMTopic(object):
         if len(post_title) == 0:
             raise PostDeleted
         self.post['title'] = post_title[0].text
-        self.post['author'] = doc.xpath("//div[@class='author']/a")[0].text
-        self.post['rating'] = doc.xpath("//div[@class='infopanel ']//span[@class='score']")[0].text
-        self.post['text'] = etree.tostring(doc.xpath("//div[@class='content html_format']")[0], pretty_print=True,
-                                           method='html').decode('utf-8')
+        tmp = doc.xpath("//div[@class='author']/a")
+        self.post['author'] = tmp[0].text if len(tmp) > 0 else ''
+        # bug in class 'infopanel ' - space added
+        tmp = doc.xpath("//div[@class='infopanel ']//span[@class='score']")
+        self.post['rating'] = tmp[0].text if len(tmp) > 0 else ''
+        tmp = doc.xpath("//div[@class='content html_format']")
+        self.post['text'] = etree.tostring(tmp[0], pretty_print=True, method='html').decode('utf-8') \
+                            if len(tmp) > 0 else ''
         self.post['comments'] = []
         # bug in class 'comments_list ' - space added
         comments = doc.xpath("//div[@class='comments_list ']//div[@class='comment_item']")
@@ -90,9 +94,11 @@ class HabraTopic(TMTopic):
     def __init__(self, topic_id):
         super().__init__(topic_id, domain='habrahabr.ru')
 
+
 class GeektimesTopic(TMTopic):
     def __init__(self, topic_id):
         super().__init__(topic_id, domain='geektimes.ru')
+
 
 class MegamozgTopic(TMTopic):
     def __init__(self, topic_id):
@@ -140,6 +146,7 @@ class TestGTTopic(TestCase):
         pp.pprint(t.title())
         pp.pprint(t.post['comments_count'])
         pp.pprint(t.post['rating'])
+
 
 class TestMMTopic(TestCase):
     def test_topic(self):
