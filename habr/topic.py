@@ -72,10 +72,8 @@ class TMTopic(object):
     def text(self):
         return deepcopy(self.post['text'])
 
-
     def title(self):
         return deepcopy(self.post['title'])
-
 
     def rating(self):
         return deepcopy(self.post['rating'])
