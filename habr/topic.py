@@ -52,13 +52,13 @@ class TMTopic(object):
             raise PostDeleted
         self.post['title'] = post_title[0].text
         tmp = doc.xpath("//div[@class='author']/a")
-        self.post['author'] = tmp[0].text if len(tmp) > 0 else ''
+        self.post['author'] = tmp[0].text if len(tmp) else ''
         # bug in class 'infopanel ' - space added
         tmp = doc.xpath("//div[@class='infopanel ']//span[@class='score']")
-        self.post['rating'] = tmp[0].text if len(tmp) > 0 else ''
+        self.post['rating'] = tmp[0].text if len(tmp) else ''
         tmp = doc.xpath("//div[@class='content html_format']")
         self.post['text'] = etree.tostring(tmp[0], pretty_print=True, method='html').decode('utf-8') \
-                            if len(tmp) > 0 else ''
+                            if len(tmp) else ''
         self.post['comments'] = []
         # bug in class 'comments_list ' - space added
         comments = doc.xpath("//div[@class='comments_list ']//div[@class='comment_item']")
