@@ -131,7 +131,10 @@ class TMUser(object):
         self._user_profile['fullname'] = tmp.pop().text.strip() if len(tmp) else ''
 
         tmp = self._doc.xpath("//div[@class='user_profile']/div[@class='rating-place']")
-        self._user_karma['rating_place'] = int(tmp.pop().text.split('-')[0]) if len(tmp) else 0
+        try:
+            self._user_karma['rating_place'] = int(tmp.pop().text.split('-')[0]) if len(tmp) else -1
+        except ValueError:
+            self._user_karma['rating_place'] = -1
 
         tmp = self._doc.xpath("//div[@class='user_profile']//dd[@class='bday']")
         self._user_profile['birthday'] = tmp[0].text if len(tmp) else ''
@@ -253,6 +256,13 @@ class Test_HabraUser(TestCase):
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint('userposts=')
         pp.pprint(hu.user_posts())
+
+    def test_rating_place(self):
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint('starting test for lokkersp')
+        hu = HabraUser('lokkersp')
+        pp.pprint('karma=')
+        pp.pprint(hu.karma())
 
 
 class Test_GeektimesUser(TestCase):
