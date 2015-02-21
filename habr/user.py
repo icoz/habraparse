@@ -113,7 +113,9 @@ class TMUser(object):
     def _parseUserpage(self):
         # print(self._doc)
         p_tags = self._doc.xpath("//div[@class='user_profile']//ul[@id='people-tags']//a/span")
-        registration_date = self._doc.xpath("//div[@class='user_profile']//dd[@class='grey']")[0].text
+        date_of_registration = self._doc.xpath("//div[@class='user_profile']//dd[@class='grey']")[0].text.strip()
+        tmp = self._doc.xpath("//div[@class='user_profile']//dl[last()]/dd")
+        date_of_last_login = tmp[0].text.strip()
 
         tmp = self._doc.xpath("//div[@class='user_header']/h2/a")
         self._user['username'] = tmp.pop().text if len(tmp) else ''
@@ -129,6 +131,9 @@ class TMUser(object):
 
         tmp = self._doc.xpath("//div[@class='user_profile']/div[@class='fullname']")
         self._user_profile['fullname'] = tmp.pop().text.strip() if len(tmp) else ''
+
+        tmp = self._doc.xpath("//div[@class='user_profile']/div[@class='fullname']/sup")
+        self._user_profile['is_read_only'] = True if len(tmp) else False
 
         tmp = self._doc.xpath("//div[@class='user_profile']/div[@class='rating-place']")
         try:
@@ -146,7 +151,8 @@ class TMUser(object):
         tmp = self._doc.xpath("//div[@class='user_profile']//dd/a[@class='city']")
         self._user_profile['city'] = tmp[0].text if len(tmp) else ''
         self._user_profile['people_tags'] = [i for i in map(lambda x: x.text, p_tags)]
-        self._user_profile['registration_date'] = registration_date[:registration_date.index('\r\n')]
+        self._user_profile['registration_date'] = date_of_registration[:date_of_registration.index('\r\n')]
+        self._user_profile['last_login_date'] = date_of_last_login[27:] if len(date_of_last_login) > 27 else ''
 
         tmp = self._doc.xpath("//div[@class='stats']/div[@id='followers_count']/a")
         self._user_activity['followers_count'] = int(tmp.pop().text.split(' ')[0]) if len(tmp) else 0
