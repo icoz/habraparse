@@ -151,7 +151,7 @@ class TMUser(object):
         tmp = self._doc.xpath("//div[@class='user_profile']//dd/a[@class='city']")
         self._user_profile['city'] = tmp[0].text if len(tmp) else ''
         self._user_profile['people_tags'] = [i for i in map(lambda x: x.text, p_tags)]
-        self._user_profile['registration_date'] = date_of_registration[:date_of_registration.index('\r\n')]
+        self._user_profile['registration_date'] = date_of_registration[:date_of_registration.index('\n')].strip()
         self._user_profile['last_login_date'] = date_of_last_login[27:] if len(date_of_last_login) > 27 else ''
 
         tmp = self._doc.xpath("//div[@class='stats']/div[@id='followers_count']/a")
