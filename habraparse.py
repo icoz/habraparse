@@ -96,6 +96,9 @@ def save_pdf(topic_id, filename, with_comments=False, project = 'h'):
     dir = os.path.dirname(filename)
     if dir != '' and not os.path.exists(dir):
         os.mkdir(dir)
+    elif os.path.exists(filename):
+        print("File {} is in target dir, skipping...")
+        return
     if project == 'g':
         ht = GeektimesTopic(topic_id)
     elif project == 'm':
@@ -178,7 +181,10 @@ def create_url_list(username, filename, project='h'):
     urls = list()
     favs_id = hu.favorites()
     for topic_name in favs_id:
-        urls.append(T(favs_id[topic_name]).getTopicUrl())
+        try:
+            urls.append(T(favs_id[topic_name]).getTopicUrl())
+        except PostDeleted:
+            print('Post {} is deleted!'.format(favs_id[topic_name]))
     urls.sort()
     with open(filename, 'wt') as f:
         f.write('\n'.join(urls))
