@@ -248,30 +248,33 @@ import pprint
 class Test_HabraUser(TestCase):
     def setUp(self):
         self.hu = HabraUser('icoz')
+        self.pp = pprint.PrettyPrinter(indent=4)
         pass
 
     def test_parseUserpage(self):
-        pp = pprint.PrettyPrinter(indent=4)
-        pp.pprint(self.hu.activity())
-        pp.pprint(self.hu.profile())
-        pp.pprint(self.hu.karma())
+        self.pp.pprint(self.hu.activity())
+        self.pp.pprint(self.hu.profile())
+        self.pp.pprint(self.hu.karma())
 
     def test_favs(self):
-        pp = pprint.PrettyPrinter(indent=4)
-        # pp.pprint(self.hu.favorites())
+        self.pp.pprint(self.hu.favorites())
+
+    def test_readonly_user(self):
+        self.pp.pprint('starting test for readonly xvitaly')
+        hu = HabraUser('xvitaly')
+        self.pp.pprint('date=')
+        self.pp.pprint(hu.profile()['registration_date'])
 
     def test_user_posts(self):
         hu = HabraUser('Zelenyikot')
-        pp = pprint.PrettyPrinter(indent=4)
-        pp.pprint('userposts=')
-        pp.pprint(hu.user_posts())
+        self.pp.pprint('userposts=')
+        self.pp.pprint(hu.user_posts())
 
     def test_rating_place(self):
-        pp = pprint.PrettyPrinter(indent=4)
-        pp.pprint('starting test for lokkersp')
+        self.pp.pprint('starting test for lokkersp')
         hu = HabraUser('lokkersp')
-        pp.pprint('karma=')
-        pp.pprint(hu.karma())
+        self.pp.pprint('karma=')
+        self.pp.pprint(hu.karma())
 
 
 class Test_GeektimesUser(TestCase):
