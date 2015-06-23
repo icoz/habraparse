@@ -8,7 +8,6 @@ from weasyprint import HTML, CSS
 from habr.topic import HabraTopic, PostDeleted, MegamozgTopic, GeektimesTopic
 from habr.user import HabraUser, GeektimesUser, MegamozgUser
 
-
 __author__ = 'icoz'
 
 
@@ -60,8 +59,7 @@ def prepare_html(topic, with_comments=False):
     else:
         html_format = html_head + html_foot
         html = html_format.format(title=t.title(), author=t.author(), text=t.text())
-    html = str(html).replace('//habrastorage.org', 'http://habrastorage.org')
-    html = str(html).replace('http:http:', 'http:')
+    html = str(html).replace('"//habrastorage.org', '"https://habrastorage.org')
     return html
 
 
@@ -87,7 +85,7 @@ def save_html(topic_id, filename, with_comments=False, project='h'):
         # and replace it
 
 
-def save_pdf(topic_id, filename, with_comments=False, project = 'h'):
+def save_pdf(topic_id, filename, with_comments=False, project='h'):
     import logging
 
     logger = logging.getLogger('weasyprint')
@@ -111,7 +109,8 @@ def save_pdf(topic_id, filename, with_comments=False, project = 'h'):
     HTML(string=html).write_pdf(filename, stylesheets=[css])
 
 
-def save_all_favs_for_user(username, out_dir, save_in_html=True, with_comments=False, save_by_name=False, limit=None, project='h'):
+def save_all_favs_for_user(username, out_dir, save_in_html=True, with_comments=False, save_by_name=False, limit=None,
+                           project='h'):
     filetype = 'pdf'
     if save_in_html:
         filetype = 'html'
@@ -140,7 +139,8 @@ def save_all_favs_for_user(username, out_dir, save_in_html=True, with_comments=F
         print('Downloading "{}"...'.format(topic_name))
         # topic = HabraTopic(topic_id)
         if save_by_name:
-            t_name = topic_name.replace('/', '_').replace('\\', '_').replace('!', '.').replace(':','.').replace(';','.')
+            t_name = topic_name.replace('/', '_').replace('\\', '_').replace('!', '.').replace(':', '.').replace(';',
+                                                                                                                 '.')
             if len(t_name) > 250:
                 t_name = t_name[:250]
             filename = '{dir}/{name}.{filetype}'.format(dir=out_dir, name=t_name, filetype=filetype)
@@ -176,8 +176,9 @@ def create_url_list(username, filename, project='h'):
     :param project: one of 'h', 'g', 'm'
     :return:
     '''
-    hu = GeektimesUser(username) if project == 'g' else MegamozgUser(username) if project == 'm' else HabraUser(username)
-    T =  GeektimesTopic if project == 'g' else MegamozgTopic if project == 'm' else HabraTopic
+    hu = GeektimesUser(username) if project == 'g' else MegamozgUser(username) if project == 'm' else HabraUser(
+        username)
+    T = GeektimesTopic if project == 'g' else MegamozgTopic if project == 'm' else HabraTopic
     urls = list()
     favs_id = hu.favorites()
     for topic_name in favs_id:
@@ -194,7 +195,7 @@ import docopt
 
 
 def main():
-        # {prog} save_posts [--gt|--mm] [-c --save-html --limit=N] <username> <out_dir>
+    # {prog} save_posts [--gt|--mm] [-c --save-html --limit=N] <username> <out_dir>
     params = """Usage:
         {prog} save_favs_list [--gt|--mm] <username> <out_file>
         {prog} save_favs [--gt|--mm] [-cn --save-html --limit=N] <username> <out_dir>
@@ -235,9 +236,9 @@ def main():
                 save_html(t_id, filename=fname, with_comments=args['--with-comments'], project=project)
             else:
                 save_pdf(t_id, filename=fname, with_comments=args['--with-comments'], project=project)
-        # if args['save_posts']:
-        #     print('Not implemented yet')
-        #     return
+                # if args['save_posts']:
+                #     print('Not implemented yet')
+                #     return
 
     except docopt.DocoptExit as e:
         print(e)
