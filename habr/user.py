@@ -121,13 +121,13 @@ class TMUser(object):
         self._user['username'] = tmp.pop().text if len(tmp) else ''
 
         tmp = self._doc.xpath("//div[@class='karma']//div[@class='num']")
-        self._user_karma['karma'] = float(tmp.pop().text.replace(',', '.')) if len(tmp) else 0.0
+        self._user_karma['karma'] = float(tmp.pop().text.replace(',', '.').replace("–","-")) if len(tmp) else 0.0
 
         tmp = self._doc.xpath("//div[@class='karma']/div[@class='votes']")
         self._user_karma['karma_vote'] = int(tmp.pop().text.split(' ')[0]) if len(tmp) else 0
 
         tmp = self._doc.xpath("//div[@class='rating']/div[@class='num']")
-        self._user_karma['rating'] = float(tmp.pop().text.replace(',', '.')) if len(tmp) else 0.0
+        self._user_karma['rating'] = float(tmp.pop().text.replace(',', '.').replace("–","-")) if len(tmp) else 0.0
 
         tmp = self._doc.xpath("//div[@class='user_profile']/div[@class='fullname']")
         self._user_profile['fullname'] = tmp.pop().text.strip() if len(tmp) else ''
