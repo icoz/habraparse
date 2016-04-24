@@ -1,9 +1,8 @@
 from copy import deepcopy
 from unittest import TestCase
 
-from lxml import etree, html
 import requests
-
+from lxml import etree, html
 
 __author__ = 'icoz'
 
@@ -44,21 +43,24 @@ class TMTopic(object):
             raise IOError('Not loaded! {} gives status_code={}'.format(self.url, req.status_code))
         doc = html.document_fromstring(req.text)
         self.post['hubs'] = []
-        hubs = doc.xpath("//div[@class='post_show']//div[@class='hubs']/a")
+        hubs = doc.xpath("//div[@class='hubs']/a")
         for h in hubs:
             self.post['hubs'].append((h.text, h.attrib['href']))
-        post_title = doc.xpath("//span[@class='post_title']")
+        post_title = doc.xpath('//h1/span[@class="post_title"]')
         if len(post_title) == 0:
             raise PostDeleted
         self.post['title'] = post_title[0].text
-        tmp = doc.xpath("//div[@class='author']/a")
+        tmp = doc.xpath("//div[@class='author-info__username']//a[@class='author-info__nickname']") or \
+              doc.xpath("//div[@class='author-info__username']//a[@class='author-info__name']") or \
+              doc.xpath("//div[@class='author-info__username']//span[@class='author-info__name']")
         self.post['author'] = tmp[0].text if len(tmp) else ''
         # bug in class 'infopanel ' - space added
-        tmp = doc.xpath("//div[@class='infopanel ']//span[@class='score']")
+        tmp = doc.xpath(
+            "//ul[@class='postinfo-panel postinfo-panel_post']//span[@class='oting-wjt__counter-score js-score']")
         self.post['rating'] = tmp[0].text if len(tmp) else ''
         tmp = doc.xpath("//div[@class='content html_format']")
         self.post['text'] = etree.tostring(tmp[0], pretty_print=True, method='html').decode('utf-8') \
-                            if len(tmp) else ''
+            if len(tmp) else ''
         self.post['comments'] = []
         # bug in class 'comments_list ' - space added
         comments = doc.xpath("//div[@class='comments_list ']//div[@class='comment_item']")
@@ -111,7 +113,7 @@ class TestHabraTopic(TestCase):
         t = HabraTopic(231957)
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(t.author())
-        self.assertEqual(t.author(), 'yaklamm')
+        self.assertEqual(t.author(), 'Яндекс')
         pp.pprint(t.title())
         pp.pprint(t.post['comments_count'])
         pp.pprint(t.post['rating'])
@@ -120,7 +122,7 @@ class TestHabraTopic(TestCase):
         t = HabraTopic(208802)
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(t.author())
-        self.assertEqual(t.author(), 'icoz')
+        self.assertEqual(t.author(), '@icoz')
         pp.pprint(t.title())
         pp.pprint(t.post['comments_count'])
         pp.pprint(t.post['rating'])
@@ -131,7 +133,7 @@ class TestGTTopic(TestCase):
         t = GeektimesTopic(243447)
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(t.author())
-        self.assertEqual(t.author(), 'SOUNDPAL')
+        self.assertEqual(t.author(), 'Soundpal')
         pp.pprint(t.title())
         pp.pprint(t.post['comments_count'])
         pp.pprint(t.post['rating'])
@@ -140,7 +142,7 @@ class TestGTTopic(TestCase):
         t = GeektimesTopic(245130)
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(t.author())
-        self.assertEqual(t.author(), 'Robotex')
+        self.assertEqual(t.author(), '@Robotex')
         pp.pprint(t.title())
         pp.pprint(t.post['comments_count'])
         pp.pprint(t.post['rating'])
@@ -151,7 +153,7 @@ class TestMMTopic(TestCase):
         t = MegamozgTopic(418)
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(t.author())
-        self.assertEqual(t.author(), 'Kirilkin')
+        self.assertEqual(t.author(), '@Kirilkin')
         pp.pprint(t.title())
         pp.pprint(t.post['comments_count'])
         pp.pprint(t.post['rating'])
@@ -160,7 +162,7 @@ class TestMMTopic(TestCase):
         t = MegamozgTopic(8568)
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(t.author())
-        self.assertEqual(t.author(), 'jasiejames')
+        self.assertEqual(t.author(), '@jasiejames')
         pp.pprint(t.title())
         pp.pprint(t.post['comments_count'])
         pp.pprint(t.post['rating'])
