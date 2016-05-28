@@ -237,9 +237,10 @@ class GeektimesUser(TMUser):
         super().__init__(username, need_favorites, need_user_posts=need_user_posts, domain='geektimes.ru')
 
 
-class MegamozgUser(TMUser):
-    def __init__(self, username, need_favorites=False, need_user_posts=False):
-        super().__init__(username, need_favorites, need_user_posts=need_user_posts, domain='megamozg.ru')
+# R.I.P.
+# class MegamozgUser(TMUser):
+#     def __init__(self, username, need_favorites=False, need_user_posts=False):
+#         super().__init__(username, need_favorites, need_user_posts=need_user_posts, domain='megamozg.ru')
 
 
 import pprint
@@ -297,24 +298,24 @@ class Test_GeektimesUser(TestCase):
         pp.pprint('userposts=')
         pp.pprint(hu.user_posts())
 
-
-class Test_MegamozgUser(TestCase):
-    def setUp(self):
-        self.hu = MegamozgUser('icoz')
-        pass
-
-    def test_parseUserpage(self):
-        pp = pprint.PrettyPrinter(indent=4)
-        pp.pprint(self.hu.activity())
-        pp.pprint(self.hu.profile())
-        pp.pprint(self.hu.karma())
-
-    # def test_favs(self):
-    # pp = pprint.PrettyPrinter(indent=4)
-
-    def test_user_posts(self):
-        hu = MegamozgUser('Zelenyikot')
-        pp = pprint.PrettyPrinter(indent=4)
-        pp.pprint('userposts=')
-        pp.pprint(hu.user_posts())
-
+#
+# class Test_MegamozgUser(TestCase):
+#     def setUp(self):
+#         self.hu = MegamozgUser('icoz')
+#         pass
+#
+#     def test_parseUserpage(self):
+#         pp = pprint.PrettyPrinter(indent=4)
+#         pp.pprint(self.hu.activity())
+#         pp.pprint(self.hu.profile())
+#         pp.pprint(self.hu.karma())
+#
+#     # def test_favs(self):
+#     # pp = pprint.PrettyPrinter(indent=4)
+#
+#     def test_user_posts(self):
+#         hu = MegamozgUser('Zelenyikot')
+#         pp = pprint.PrettyPrinter(indent=4)
+#         pp.pprint('userposts=')
+#         pp.pprint(hu.user_posts())
+#

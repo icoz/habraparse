@@ -46,10 +46,10 @@ class TMTopic(object):
         hubs = doc.xpath("//div[@class='hubs']/a")
         for h in hubs:
             self.post['hubs'].append((h.text, h.attrib['href']))
-        post_title = doc.xpath('//h1/span[@class="post_title"]')
+        post_title = doc.xpath('//h1[@class="post__title"]/span')
         if len(post_title) == 0:
             raise PostDeleted
-        self.post['title'] = post_title[0].text
+        self.post['title'] = post_title
         tmp = doc.xpath("//div[@class='author-info__username']//a[@class='author-info__nickname']") or \
               doc.xpath("//div[@class='author-info__username']//a[@class='author-info__name']") or \
               doc.xpath("//div[@class='author-info__username']//span[@class='author-info__name']")
@@ -63,10 +63,29 @@ class TMTopic(object):
             if len(tmp) else ''
         self.post['comments'] = []
         # bug in class 'comments_list ' - space added
-        comments = doc.xpath("//div[@class='comments_list ']//div[@class='comment_item']")
+        # comments = doc.xpath("//div[@class='comments_list ']//div[@class='comment_item']")
+        comments = doc.xpath("//ul[@id='comments-list']//li[@class='comment_item']")
         self.post['comments_count'] = len(comments)
-        for c in comments:
-            self.post['comments'].append(etree.tostring(c, pretty_print=True, method='html').decode('utf-8'))
+        # record = (author, text)
+        authors = map(lambda x: x.text, doc.xpath("//a[@class='comment-item__username']"))
+        cmt_texts = map(lambda x: x.text, doc.xpath("//div[@class='message html_format ']"))
+        c_id = map(lambda x: x.attrib['id'][8:], doc.xpath("//li[@class='comment_item']"))
+        p_id = map(lambda x: x.attrib['data-parent_id'], doc.xpath("//span[@class='parent_id']"))
+        self.post['comments'] = tuple(zip(authors, cmt_texts, c_id, p_id))
+
+        # self.post['comments'] = list()
+        # for c in comments:
+        #     # self.post['comments'].append(etree.tostring(c, pretty_print=True, method='html').decode('utf-8'))
+        #     # record = (author, text, c_id, parent_c_id)
+        #     author = c.xpath("//a[@class='comment-item__username']")
+        #     if len(author): author = author[0].text
+        #     else: author = '<anonymous>'
+        #     text = c.xpath("//div[@class='message html_format ']")
+        #     if text != '': text = text[0].text
+        #     c_id = c.attrib['id']
+        #     p_id = c.xpath("//span[@class='parent_id']")[0]
+        #     if p_id != '': p_id = p_id.attrib['data-parent_id']
+        #     self.post['comments'].append((author, text, c_id, p_id))
 
     def author(self):
         return deepcopy(self.post['author'])
@@ -93,16 +112,19 @@ class TMTopic(object):
 class HabraTopic(TMTopic):
     def __init__(self, topic_id):
         super().__init__(topic_id, domain='habrahabr.ru')
+        self.post['title'] = self.post['title'][1].text
 
 
 class GeektimesTopic(TMTopic):
     def __init__(self, topic_id):
         super().__init__(topic_id, domain='geektimes.ru')
+        self.post['title'] = self.post['title'][0].text
 
 
-class MegamozgTopic(TMTopic):
-    def __init__(self, topic_id):
-        super().__init__(topic_id, domain='megamozg.ru')
+# R.I.P.
+# class MegamozgTopic(TMTopic):
+#     def __init__(self, topic_id):
+#         super().__init__(topic_id, domain='megamozg.ru')
 
 
 import pprint
@@ -115,6 +137,7 @@ class TestHabraTopic(TestCase):
         pp.pprint(t.author())
         self.assertEqual(t.author(), 'Яндекс')
         pp.pprint(t.title())
+        self.assertEqual(t.title(), 'Memory management в ядре Linux. Семинар в Яндексе')
         pp.pprint(t.post['comments_count'])
         pp.pprint(t.post['rating'])
 
@@ -123,9 +146,12 @@ class TestHabraTopic(TestCase):
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(t.author())
         self.assertEqual(t.author(), '@icoz')
+        self.assertEqual(t.title(), 'Экспорт Избранного на Хабре в PDF')
         pp.pprint(t.title())
         pp.pprint(t.post['comments_count'])
         pp.pprint(t.post['rating'])
+        self.assertEqual(t.comments()[0][0], 'keccak')
+        self.assertEqual(t.comments()[1][0], 'icoz')
 
 
 class TestGTTopic(TestCase):
@@ -135,6 +161,7 @@ class TestGTTopic(TestCase):
         pp.pprint(t.author())
         self.assertEqual(t.author(), 'Soundpal')
         pp.pprint(t.title())
+        self.assertEqual(t.title(), 'На что влияет сопротивление наушников')
         pp.pprint(t.post['comments_count'])
         pp.pprint(t.post['rating'])
 
@@ -144,25 +171,25 @@ class TestGTTopic(TestCase):
         pp.pprint(t.author())
         self.assertEqual(t.author(), '@Robotex')
         pp.pprint(t.title())
+        self.assertEqual(t.title(), 'Autodesk и Voxel8 делают 3D-печать электроники реальностью')
         pp.pprint(t.post['comments_count'])
         pp.pprint(t.post['rating'])
 
-
-class TestMMTopic(TestCase):
-    def test_topic(self):
-        t = MegamozgTopic(418)
-        pp = pprint.PrettyPrinter(indent=4)
-        pp.pprint(t.author())
-        self.assertEqual(t.author(), '@Kirilkin')
-        pp.pprint(t.title())
-        pp.pprint(t.post['comments_count'])
-        pp.pprint(t.post['rating'])
-
-    def test_topic2(self):
-        t = MegamozgTopic(8568)
-        pp = pprint.PrettyPrinter(indent=4)
-        pp.pprint(t.author())
-        self.assertEqual(t.author(), '@jasiejames')
-        pp.pprint(t.title())
-        pp.pprint(t.post['comments_count'])
-        pp.pprint(t.post['rating'])
+# class TestMMTopic(TestCase):
+#     def test_topic(self):
+#         t = MegamozgTopic(418)
+#         pp = pprint.PrettyPrinter(indent=4)
+#         pp.pprint(t.author())
+#         self.assertEqual(t.author(), '@Kirilkin')
+#         pp.pprint(t.title())
+#         pp.pprint(t.post['comments_count'])
+#         pp.pprint(t.post['rating'])
+#
+#     def test_topic2(self):
+#         t = MegamozgTopic(8568)
+#         pp = pprint.PrettyPrinter(indent=4)
+#         pp.pprint(t.author())
+#         self.assertEqual(t.author(), '@jasiejames')
+#         pp.pprint(t.title())
+#         pp.pprint(t.post['comments_count'])
+#         pp.pprint(t.post['rating'])

@@ -5,8 +5,8 @@ import sys
 
 from weasyprint import HTML, CSS
 
-from habr.topic import HabraTopic, PostDeleted, MegamozgTopic, GeektimesTopic
-from habr.user import HabraUser, GeektimesUser, MegamozgUser
+from habr.topic import HabraTopic, PostDeleted, GeektimesTopic
+from habr.user import HabraUser, GeektimesUser
 
 __author__ = 'icoz'
 
@@ -38,10 +38,24 @@ def prepare_html(topic, with_comments=False):
             </div>
     '''
     html_cmnts = '''
-            <div id="comments" class="comments_list">
-            <h2 class="title">Комментарии</h2>
-            {comments}
+            <h2>Комментарии</h2>
+            <ul id="comments-list">
+                {comments}
+            </ul>
+    '''
+    html_cmnt = '''
+    <li class="comment_item" id="comment_{c_id}">
+    <span class="parent_id" data-parent_id="{p_id}"></span>
+    <div class="comment_body ">
+        <div class="info comments-list__item comment-item  " rel="{c_id}">
+            <span class="comment-item__user-info" rel="user-popover" data-user-login="{user}">
+            <a href="https://habrahabr.ru/users/{user}/" class="comment-item__username">{user}</a>
+            </span>
+            <div class="message html_format ">
+                {cmnt}
             </div>
+        </div>
+    </div>
     '''
     html_foot = '''
         </div>
@@ -53,9 +67,15 @@ def prepare_html(topic, with_comments=False):
     if with_comments:
         cmnts = ''
         html_format = html_head + html_cmnts + html_foot
+        # print("t.comments()=", len(t.comments()))
+        l = 0
         for c in t.comments():
-            cmnts += '{}\n'.format(c)
+            user, cmnt, c_id, p_id = c
+            cmnts += html_cmnt.format(user=user, cmnt=cmnt, c_id=c_id, p_id=p_id)
+        # print('cmnts.len=', len(cmnts))
+        # print('l=', l)
         html = html_format.format(title=t.title(), author=t.author(), text=t.text(), comments=cmnts)
+        # print('html.len=', len(html))
     else:
         html_format = html_head + html_foot
         html = html_format.format(title=t.title(), author=t.author(), text=t.text())
@@ -73,10 +93,11 @@ def save_html(topic_id, filename, with_comments=False, project='h'):
     with open(filename, "wt") as f:
         if project == 'g':
             ht = GeektimesTopic(topic_id)
-        elif project == 'm':
-            ht = MegamozgTopic(topic_id)
+        # elif project == 'm':
+        #     ht = MegamozgTopic(topic_id)
         else:
             ht = HabraTopic(topic_id)
+        print('comments_cnt=', ht.comments_count())
         html = prepare_html(ht, with_comments=with_comments)
         f.write(html)
         # TODO: get all images and css
@@ -99,8 +120,8 @@ def save_pdf(topic_id, filename, with_comments=False, project='h'):
         return
     if project == 'g':
         ht = GeektimesTopic(topic_id)
-    elif project == 'm':
-        ht = MegamozgTopic(topic_id)
+    # elif project == 'm':
+    #     ht = MegamozgTopic(topic_id)
     else:
         ht = HabraTopic(topic_id)
 
@@ -118,8 +139,8 @@ def save_all_favs_for_user(username, out_dir, save_in_html=True, with_comments=F
     # hu = HabraUser(username, need_favorites=True)
     if project == 'g':
         hu = GeektimesUser(username)
-    elif project == 'm':
-        hu = MegamozgUser(username)
+    # elif project == 'm':
+    #     hu = MegamozgUser(username)
     else:
         hu = HabraUser(username)
     # hu = GeektimesUser(username) if project == 'g' else MegamozgUser(username) if project == 'm' else HabraUser(username)
@@ -176,9 +197,8 @@ def create_url_list(username, filename, project='h'):
     :param project: one of 'h', 'g', 'm'
     :return:
     '''
-    hu = GeektimesUser(username) if project == 'g' else MegamozgUser(username) if project == 'm' else HabraUser(
-        username)
-    T = GeektimesTopic if project == 'g' else MegamozgTopic if project == 'm' else HabraTopic
+    hu = GeektimesUser(username) if project == 'g' else HabraUser(username)
+    T = GeektimesTopic if project == 'g' else HabraTopic
     urls = list()
     favs_id = hu.favorites()
     for topic_name in favs_id:
@@ -197,9 +217,9 @@ import docopt
 def main():
     # {prog} save_posts [--gt|--mm] [-c --save-html --limit=N] <username> <out_dir>
     params = """Usage:
-        {prog} save_favs_list [--gt|--mm] <username> <out_file>
-        {prog} save_favs [--gt|--mm] [-cn --save-html --limit=N] <username> <out_dir>
-        {prog} save_post [--gt|--mm] [-c --save-html] <topic_id> <out_file>
+        {prog} save_favs_list [--gt] <username> <out_file>
+        {prog} save_favs [--gt] [-cn --save-html --limit=N] <username> <out_dir>
+        {prog} save_post [--gt] [-c --save-html] <topic_id> <out_file>
         {prog} --help
 
     Arguments:
@@ -209,16 +229,16 @@ def main():
 
     Options:
         --gt                Работать с Geektimes
-        --mm                Работать с Megamozg
         --save-html          Сохранить в HTML (по умолчанию, в PDF)
         -n, --save-by-name       Сохранять с именем, полученным из названия статьи (по умолчанию - по ID статьи)
-        -c, --with-comments     Сохранить вместе с коментариями
         --limit=N          Ограничить количество в N статей
     """.format(prog=sys.argv[0])
+    #         -c, --with-comments     Сохранить вместе с коментариями
+
     try:
         args = docopt.docopt(params)
         # print(args)
-        project = 'g' if args.get('--gt') else 'm' if args.get('--mm') else 'h'
+        project = 'g' if args.get('--gt') else 'h'
         # print (project)
         # print(args)  # debug
         if args['save_favs_list']:
@@ -226,16 +246,16 @@ def main():
             return
         if args['save_favs']:
             save_all_favs_for_user(args['<username>'], args['<out_dir>'], save_in_html=args['--save-html'],
-                                   with_comments=args['--with-comments'], save_by_name=args['--save-by-name'],
+                                   with_comments=args.get('--with-comments', False), save_by_name=args['--save-by-name'],
                                    limit=args['--limit'], project=project)
             return
         if args['save_post']:
             t_id = args['<topic_id>']
             fname = args['<out_file>']
             if args['--save-html']:
-                save_html(t_id, filename=fname, with_comments=args['--with-comments'], project=project)
+                save_html(t_id, filename=fname, with_comments=args.get('--with-comments', False), project=project)
             else:
-                save_pdf(t_id, filename=fname, with_comments=args['--with-comments'], project=project)
+                save_pdf(t_id, filename=fname, with_comments=args.get('--with-comments', False), project=project)
                 # if args['save_posts']:
                 #     print('Not implemented yet')
                 #     return
