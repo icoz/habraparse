@@ -93,8 +93,6 @@ def save_html(topic_id, filename, with_comments=False, project='h'):
     with open(filename, "wt") as f:
         if project == 'g':
             ht = GeektimesTopic(topic_id)
-        # elif project == 'm':
-        #     ht = MegamozgTopic(topic_id)
         else:
             ht = HabraTopic(topic_id)
         print('comments_cnt=', ht.comments_count())
@@ -106,7 +104,7 @@ def save_html(topic_id, filename, with_comments=False, project='h'):
         # and replace it
 
 
-def save_pdf(topic_id, filename, with_comments=False, project='h'):
+def save_pdf(topic_id: int, filename: str, with_comments: bool = False, project: str = 'h'):
     import logging
 
     logger = logging.getLogger('weasyprint')
@@ -116,12 +114,10 @@ def save_pdf(topic_id, filename, with_comments=False, project='h'):
     if dir != '' and not os.path.exists(dir):
         os.mkdir(dir)
     elif os.path.exists(filename):
-        print("File {} is in target dir, skipping...")
+        print("File {} is in target dir, skipping...".format(filename))
         return
     if project == 'g':
         ht = GeektimesTopic(topic_id)
-    # elif project == 'm':
-    #     ht = MegamozgTopic(topic_id)
     else:
         ht = HabraTopic(topic_id)
 
@@ -135,17 +131,11 @@ def save_all_favs_for_user(username, out_dir, save_in_html=True, with_comments=F
     filetype = 'pdf'
     if save_in_html:
         filetype = 'html'
-        # raise NotImplemented
-    # hu = HabraUser(username, need_favorites=True)
     if project == 'g':
         hu = GeektimesUser(username)
-    # elif project == 'm':
-    #     hu = MegamozgUser(username)
     else:
         hu = HabraUser(username)
-    # hu = GeektimesUser(username) if project == 'g' else MegamozgUser(username) if project == 'm' else HabraUser(username)
     favs_id = hu.favorites()
-    # print (favs_id)
     deleted = list()
     if limit is not None:
         limit_cnt = int(limit)
@@ -158,7 +148,6 @@ def save_all_favs_for_user(username, out_dir, save_in_html=True, with_comments=F
             limit_cnt -= 1
         topic_id = favs_id[topic_name]
         print('Downloading "{}"...'.format(topic_name))
-        # topic = HabraTopic(topic_id)
         if save_by_name:
             t_name = topic_name.replace('/', '_').replace('\\', '_').replace('!', '.').replace(':', '.').replace(';',
                                                                                                                  '.')
@@ -170,7 +159,7 @@ def save_all_favs_for_user(username, out_dir, save_in_html=True, with_comments=F
         print('Saving it in "{}"'.format(filename))
         try:
             if save_in_html:
-                html = save_html(topic_id, filename, with_comments=with_comments, project=project)
+                save_html(topic_id, filename, with_comments=with_comments, project=project)
             else:
                 save_pdf(topic_id, filename, with_comments=with_comments, project=project)
         except PostDeleted:
@@ -194,7 +183,7 @@ def create_url_list(username, filename, project='h'):
     Generates url list for favorites
     :param username:
     :param filename:
-    :param project: one of 'h', 'g', 'm'
+    :param project: one of 'h', 'g'
     :return:
     '''
     hu = GeektimesUser(username) if project == 'g' else HabraUser(username)
@@ -229,24 +218,22 @@ def main():
 
     Options:
         --gt                Работать с Geektimes
+        -c, --with-comments     Сохранить вместе с коментариями
         --save-html          Сохранить в HTML (по умолчанию, в PDF)
         -n, --save-by-name       Сохранять с именем, полученным из названия статьи (по умолчанию - по ID статьи)
         --limit=N          Ограничить количество в N статей
     """.format(prog=sys.argv[0])
-    #         -c, --with-comments     Сохранить вместе с коментариями
 
     try:
         args = docopt.docopt(params)
-        # print(args)
         project = 'g' if args.get('--gt') else 'h'
-        # print (project)
-        # print(args)  # debug
         if args['save_favs_list']:
             create_url_list(args['<username>'], args['<out_file>'], project=project)
             return
         if args['save_favs']:
             save_all_favs_for_user(args['<username>'], args['<out_dir>'], save_in_html=args['--save-html'],
-                                   with_comments=args.get('--with-comments', False), save_by_name=args['--save-by-name'],
+                                   with_comments=args.get('--with-comments', False),
+                                   save_by_name=args['--save-by-name'],
                                    limit=args['--limit'], project=project)
             return
         if args['save_post']:
@@ -256,24 +243,10 @@ def main():
                 save_html(t_id, filename=fname, with_comments=args.get('--with-comments', False), project=project)
             else:
                 save_pdf(t_id, filename=fname, with_comments=args.get('--with-comments', False), project=project)
-                # if args['save_posts']:
-                #     print('Not implemented yet')
-                #     return
 
     except docopt.DocoptExit as e:
         print(e)
 
 
-def test_pdf():
-    h = HTML('http://habrahabr.ru/post/208802')
-    h.write_pdf('habr.pdf')
-
-
-def test_main():
-    create_url_list('icoz', 'icoz.txt')
-    pass
-
-
 if __name__ == '__main__':
-    # test_main()
     main()

@@ -67,10 +67,10 @@ class TMTopic(object):
         comments = doc.xpath("//ul[@id='comments-list']//li[@class='comment_item']")
         self.post['comments_count'] = len(comments)
         # record = (author, text)
-        authors = map(lambda x: x.text, doc.xpath("//a[@class='comment-item__username']"))
-        cmt_texts = map(lambda x: x.text, doc.xpath("//div[@class='message html_format ']"))
-        c_id = map(lambda x: x.attrib['id'][8:], doc.xpath("//li[@class='comment_item']"))
-        p_id = map(lambda x: x.attrib['data-parent_id'], doc.xpath("//span[@class='parent_id']"))
+        authors = list(map(lambda x: x.text, doc.xpath("//ul[@id='comments-list']//a[@class='comment-item__username']")))
+        cmt_texts = list(map(lambda x: x.text.strip(), doc.xpath("//ul[@id='comments-list']//div[starts-with(@class,'message html_format ')]")))
+        c_id = list(map(lambda x: int(x.attrib['id'][8:]), doc.xpath("//ul[@id='comments-list']//li[@class='comment_item']")))
+        p_id = list(map(lambda x: int(x.attrib['data-parent_id']), doc.xpath("//ul[@id='comments-list']//span[@class='parent_id']")))
         self.post['comments'] = tuple(zip(authors, cmt_texts, c_id, p_id))
 
         # self.post['comments'] = list()
@@ -152,6 +152,24 @@ class TestHabraTopic(TestCase):
         pp.pprint(t.post['rating'])
         self.assertEqual(t.comments()[0][0], 'keccak')
         self.assertEqual(t.comments()[1][0], 'icoz')
+
+    def test_topic3(self):
+        t = HabraTopic(28108)
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint(t.author())
+        self.assertEqual(t.author(), '@cachealot')
+        self.assertEqual(t.title(), 'эффективное использование vim: «from the very begining»')
+        pp.pprint(t.title())
+        pp.pprint(t.post['comments_count'])
+        pp.pprint(t.post['rating'])
+        self.assertEqual(t.comments()[0][0], 'cachealot')
+        self.assertEqual(t.comments()[0][1], 'не поверите, 3,5 часа убил на пост )')
+        self.assertEqual(t.comments()[0][2], 734629)
+        self.assertEqual(t.comments()[0][3], 0)
+        self.assertEqual(t.comments()[1][0], 'ShPashok')
+        self.assertEqual(t.comments()[1][1], 'а 2 секунды на хабракат пожалели :)')
+        self.assertEqual(t.comments()[1][2], 734630)
+        self.assertEqual(t.comments()[1][3], 734629)
 
 
 class TestGTTopic(TestCase):
