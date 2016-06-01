@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
+from pprint import pprint
 import sys
 
 from weasyprint import HTML, CSS
@@ -10,11 +11,44 @@ from habr.user import HabraUser, GeektimesUser
 
 __author__ = 'icoz'
 
+def generate_comments(cmnts, id=0):
+    html_subcmnt = '''
+    <ul class="reply_comments" id="reply_comments_{c_id}">
+    {list_cmnts}
+    </ul>
+    '''
+    html_cmnt = '''
+    <li class="comment_item" id="comment_{c_id}">
+    <span class="parent_id" data-parent_id="{p_id}"></span>
+    <div class="comment_body ">
+        <div class="info comments-list__item comment-item  " rel="{c_id}">
+            <span class="comment-item__user-info" data-user-login="{user}">
+            <a href="https://habrahabr.ru/users/{user}/" class="comment-item__username">{user}</a>
+			<time class="comment-item__time_published">{time}</time>
+            </span>
+            <div class="message html_format ">
+                {cmnt_text}
+            </div>
+        </div>
+    </div>
+    '''
+    cmnts2 = tuple(filter(lambda x: x['p_id'] == id, cmnts))
+    if len(cmnts2) == 0: return ''
+    out = ''
+    for c in cmnts2:
+        out += html_cmnt.format(c_id=c['c_id'], p_id=id, user=c['author'], time=c['time'], cmnt_text=c['text'])
+        out += html_subcmnt.format(c_id = c['c_id'], list_cmnts=generate_comments(cmnts, c['c_id']))
+    return out
 
 def prepare_html(topic, with_comments=False):
     t = topic
     # <link href="http://habrahabr.ru/styles/1412005750/printer.css" rel="stylesheet" media="print" />
     # <link href="http://habrahabr.ru/styles/1412005750/assets/global_main.css" rel="stylesheet" media="all" />
+    # worked. 01/06/2016 <link href="http://habrahabr.ru/styles/1412005750/assets/post_common_css.css" rel="stylesheet" media="all" />
+    #     <link href="https://habracdn.net/habr/styles/1464788371/_build/global_main.css" rel="stylesheet" media="all" />
+    #     <link href="https://habracdn.net/habr/styles/1464788371/_build/company_post_show_common.css" rel="stylesheet" media="all" />
+    #     <link href="https://habracdn.net/habr/styles/1464788371/_build/post_common_css.css" rel="stylesheet" media="all" />
+
     html_head = '''
     <html>
     <head>
@@ -38,23 +72,13 @@ def prepare_html(topic, with_comments=False):
             </div>
     '''
     html_cmnts = '''
-            <h2>Комментарии</h2>
-            <ul id="comments-list">
-                {comments}
-            </ul>
-    '''
-    html_cmnt = '''
-    <li class="comment_item" id="comment_{c_id}">
-    <span class="parent_id" data-parent_id="{p_id}"></span>
-    <div class="comment_body ">
-        <div class="info comments-list__item comment-item  " rel="{c_id}">
-            <span class="comment-item__user-info" rel="user-popover" data-user-login="{user}">
-            <a href="https://habrahabr.ru/users/{user}/" class="comment-item__username">{user}</a>
-            </span>
-            <div class="message html_format ">
-                {cmnt}
-            </div>
-        </div>
+    <div class="comments_list " id="comments">
+        <h2 class="title ">
+          Комментарии (<span id="comments_count">{cmnts_count}</span>)
+        </h2>
+        <ul id="comments-list">
+            {comments}
+        </ul>
     </div>
     '''
     html_foot = '''
@@ -65,17 +89,9 @@ def prepare_html(topic, with_comments=False):
     </html>
     '''
     if with_comments:
-        cmnts = ''
         html_format = html_head + html_cmnts + html_foot
-        # print("t.comments()=", len(t.comments()))
-        l = 0
-        for c in t.comments():
-            user, cmnt, c_id, p_id = c
-            cmnts += html_cmnt.format(user=user, cmnt=cmnt, c_id=c_id, p_id=p_id)
-        # print('cmnts.len=', len(cmnts))
-        # print('l=', l)
-        html = html_format.format(title=t.title(), author=t.author(), text=t.text(), comments=cmnts)
-        # print('html.len=', len(html))
+        html = html_format.format(title=t.title(), author=t.author(), text=t.text(),
+                                  comments=generate_comments(t.comments(), 0), cmnts_count=t.comments_count())
     else:
         html_format = html_head + html_foot
         html = html_format.format(title=t.title(), author=t.author(), text=t.text())

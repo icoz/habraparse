@@ -64,14 +64,27 @@ class TMTopic(object):
         self.post['comments'] = []
         # bug in class 'comments_list ' - space added
         # comments = doc.xpath("//div[@class='comments_list ']//div[@class='comment_item']")
-        comments = doc.xpath("//ul[@id='comments-list']//li[@class='comment_item']")
-        self.post['comments_count'] = len(comments)
+        # comments = doc.xpath("//ul[@id='comments-list']//li[@class='comment_item']")
         # record = (author, text)
         authors = list(map(lambda x: x.text, doc.xpath("//ul[@id='comments-list']//a[@class='comment-item__username']")))
         cmt_texts = list(map(lambda x: x.text.strip(), doc.xpath("//ul[@id='comments-list']//div[starts-with(@class,'message html_format ')]")))
         c_id = list(map(lambda x: int(x.attrib['id'][8:]), doc.xpath("//ul[@id='comments-list']//li[@class='comment_item']")))
         p_id = list(map(lambda x: int(x.attrib['data-parent_id']), doc.xpath("//ul[@id='comments-list']//span[@class='parent_id']")))
-        self.post['comments'] = tuple(zip(authors, cmt_texts, c_id, p_id))
+        time = list(map(lambda x: x.text.strip(), doc.xpath("//ul[@id='comments-list']//time")))
+        tpl = tuple(zip(authors, cmt_texts, c_id, p_id, time))
+        self.post['comments'] = tuple(
+            map(
+                lambda x:
+                    {
+                        'author':x[0],
+                        'text': x[1],
+                        'c_id': x[2],
+                        'p_id': x[3],
+                        'time': x[4],
+                    },
+                tpl)
+        )
+        self.post['comments_count'] = len(self.post['comments'])
 
         # self.post['comments'] = list()
         # for c in comments:
