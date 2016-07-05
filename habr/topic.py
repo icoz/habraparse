@@ -66,22 +66,29 @@ class TMTopic(object):
         # comments = doc.xpath("//div[@class='comments_list ']//div[@class='comment_item']")
         # comments = doc.xpath("//ul[@id='comments-list']//li[@class='comment_item']")
         # record = (author, text)
-        authors = list(map(lambda x: x.text, doc.xpath("//ul[@id='comments-list']//a[@class='comment-item__username']")))
-        cmt_texts = list(map(lambda x: x.text.strip(), doc.xpath("//ul[@id='comments-list']//div[starts-with(@class,'message html_format ')]")))
-        c_id = list(map(lambda x: int(x.attrib['id'][8:]), doc.xpath("//ul[@id='comments-list']//li[@class='comment_item']")))
-        p_id = list(map(lambda x: int(x.attrib['data-parent_id']), doc.xpath("//ul[@id='comments-list']//span[@class='parent_id']")))
+        authors = list(
+            map(lambda x: x.text, doc.xpath("//ul[@id='comments-list']//a[@class='comment-item__username']"))
+        )
+        cmt_texts = list(map(lambda x: etree.tostring(x, pretty_print=True, method='html').decode('utf-8'),
+                             doc.xpath("//ul[@id='comments-list']//div[starts-with(@class,'message html_format ')]"))
+                         )
+        c_id = list(
+            map(lambda x: int(x.attrib['id'][8:]), doc.xpath("//ul[@id='comments-list']//li[@class='comment_item']"))
+        )
+        p_id = list(map(lambda x: int(x.attrib['data-parent_id']),
+                        doc.xpath("//ul[@id='comments-list']//span[@class='parent_id']")))
         time = list(map(lambda x: x.text.strip(), doc.xpath("//ul[@id='comments-list']//time")))
         tpl = tuple(zip(authors, cmt_texts, c_id, p_id, time))
         self.post['comments'] = tuple(
             map(
                 lambda x:
-                    {
-                        'author':x[0],
-                        'text': x[1],
-                        'c_id': x[2],
-                        'p_id': x[3],
-                        'time': x[4],
-                    },
+                {
+                    'author': x[0],
+                    'text': x[1],
+                    'c_id': x[2],
+                    'p_id': x[3],
+                    'time': x[4],
+                },
                 tpl)
         )
         self.post['comments_count'] = len(self.post['comments'])
@@ -163,8 +170,8 @@ class TestHabraTopic(TestCase):
         pp.pprint(t.title())
         pp.pprint(t.post['comments_count'])
         pp.pprint(t.post['rating'])
-        self.assertEqual(t.comments()[0][0], 'keccak')
-        self.assertEqual(t.comments()[1][0], 'icoz')
+        self.assertEqual(t.comments()[0]['author'], 'keccak')
+        self.assertEqual(t.comments()[1]['author'], 'icoz')
 
     def test_topic3(self):
         t = HabraTopic(28108)
@@ -175,14 +182,17 @@ class TestHabraTopic(TestCase):
         pp.pprint(t.title())
         pp.pprint(t.post['comments_count'])
         pp.pprint(t.post['rating'])
-        self.assertEqual(t.comments()[0][0], 'cachealot')
-        self.assertEqual(t.comments()[0][1], 'не поверите, 3,5 часа убил на пост )')
-        self.assertEqual(t.comments()[0][2], 734629)
-        self.assertEqual(t.comments()[0][3], 0)
-        self.assertEqual(t.comments()[1][0], 'ShPashok')
-        self.assertEqual(t.comments()[1][1], 'а 2 секунды на хабракат пожалели :)')
-        self.assertEqual(t.comments()[1][2], 734630)
-        self.assertEqual(t.comments()[1][3], 734629)
+        self.assertEqual(t.comments()[0]['author'], 'cachealot')
+        from lxml import html
+        txt = html.fromstring(t.comments()[0]['text']).text_content().replace("'",'').strip()
+        self.assertEqual(txt, 'не поверите, 3,5 часа убил на пост )')
+        self.assertEqual(t.comments()[0]['c_id'], 734629)
+        self.assertEqual(t.comments()[0]['p_id'], 0)
+        self.assertEqual(t.comments()[1]['author'], 'ShPashok')
+        txt = html.fromstring(t.comments()[1]['text']).text_content().replace("'",'').strip()
+        self.assertEqual(txt, 'а 2 секунды на хабракат пожалели :)')
+        self.assertEqual(t.comments()[1]['c_id'], 734630)
+        self.assertEqual(t.comments()[1]['p_id'], 734629)
 
 
 class TestGTTopic(TestCase):
