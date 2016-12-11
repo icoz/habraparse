@@ -1,14 +1,21 @@
 # habraparse
-Парсер для сайта habrahabr.ru, а также для проектов Geektimes.ru и Megamozg.ru
+Парсер для проектов Habrahabr.ru и Geektimes.ru 
+
+
+Для работы скрипта необходимо установить зависимости
+```
+pip install -r requirements.txt
+```
+
 
 Usage:
 ```
-  ./habraparse.py save_favs_list [--gt|--mm] <username> <out_file>
-  ./habraparse.py save_favs [--gt|--mm] [-cn --save-html --limit=N] <username> <out_dir>
-  ./habraparse.py save_post [--gt|--mm] [-c --save-html] <topic_id> <out_file>
+  ./habraparse.py save_favs_list [--gt] <username> <out_file>
+  ./habraparse.py save_favs [--gt] [-cn --save-html --limit=N] <username> <out_dir>
+  ./habraparse.py save_post [--gt] [-c --save-html] <topic_id> <out_file>
 ```
 По умолчанию все команды работают с проектом HabraHabr.ru.
-При задании опций --gt/--mm скрипт будет работать с GeekTimes.ru/Megamozg.ru
+При задании опции --gt скрипт будет работать с GeekTimes.ru
 
 Команды:
 ```
@@ -29,6 +36,11 @@ Changelog:
 *01.02.2015*
 - исправлены ошибки
 - добавлена поддержка Geektimes.ru и Megamozg.ru
+*28.05.2016*
+- удалена поддержка Megamozg в связи с его кончиной (R.I.P.)
+*11.12.2016*
+- исправлено поведение согласно изменениям на сайте
+- добавлен файл requirements.txt
 
 Распространяется по лицензии GNU GPL v2.0.
 Under license GNU GPL v2.0

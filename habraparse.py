@@ -54,7 +54,6 @@ def prepare_html(topic, with_comments=False):
     <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
     <meta charset="UTF-8">
-    <link href="http://habrahabr.ru/styles/1412005750/assets/post_common_css.css" rel="stylesheet" media="all" />
     <title>{title}</title>
     </head>
     <body>
@@ -148,9 +147,9 @@ def save_all_favs_for_user(username, out_dir, save_in_html=True, with_comments=F
     if save_in_html:
         filetype = 'html'
     if project == 'g':
-        hu = GeektimesUser(username)
+        hu = GeektimesUser(username, need_favorites=True)
     else:
-        hu = HabraUser(username)
+        hu = HabraUser(username, need_favorites=True)
     favs_id = hu.favorites()
     deleted = list()
     if limit is not None:
