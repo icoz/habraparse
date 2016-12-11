@@ -118,7 +118,7 @@ class TMUser(object):
         date_of_last_login = tmp[0].text.strip()
 
         tmp = self._doc.xpath("//div[@class='user_header']/h2/a")
-        self._user['username'] = tmp.pop().text if len(tmp) else ''
+        self._user['username'] = tmp.pop().text if len(tmp) else self._username
 
         tmp = self._doc.xpath("//div[@class='karma']//div[@class='num']")
         self._user_karma['karma'] = float(tmp.pop().text.replace(',', '.').replace("–","-")) if len(tmp) else 0.0
@@ -186,7 +186,7 @@ class TMUser(object):
         doc = html.document_fromstring(requests.get(url).text)
         out = dict()
         pages = get_pages(doc)
-        favs = doc.xpath("//div[@class='user_favorites']//a[@class='post_title']")
+        favs = doc.xpath("//div[@class='user_favorites']//a[@class='post__title_link']")
         for f in favs:
             # out[f.text] = str(f.attrib['href']).split('/')[-2]
             # topic_id =
@@ -196,7 +196,7 @@ class TMUser(object):
             # if show_progress:
             # print('parsing page{0}... url={1}'.format(p, url))
             doc = html.document_fromstring(requests.get(url).text)
-            favs = doc.xpath("//div[@class='user_favorites']//a[@class='post_title']")
+            favs = doc.xpath("//div[@class='user_favorites']//a[@class='post__title_link']")
             for f in favs:
                 # out[f.text] = f.attrib['href'][-7:-1]
                 out[f.text] = str(f.attrib['href']).split('/')[-2]
