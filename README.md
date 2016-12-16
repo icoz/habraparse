@@ -1,6 +1,6 @@
 # habraparse
 Парсер для проектов Habrahabr.ru и Geektimes.ru 
-
+[![Build Status](https://travis-ci.org/icoz/habraparse.svg?branch=master)](https://travis-ci.org/icoz/habraparse)
 
 Для работы скрипта необходимо установить зависимости
 ```
