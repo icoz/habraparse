@@ -1,5 +1,7 @@
 # habraparse
 [![Build Status](https://travis-ci.org/icoz/habraparse.svg?branch=master)](https://travis-ci.org/icoz/habraparse)
+[![Code Climate](https://codeclimate.com/github/icoz/habraparse/badges/gpa.svg)](https://codeclimate.com/github/icoz/habraparse)
+[![Issue Count](https://codeclimate.com/github/icoz/habraparse/badges/issue_count.svg)](https://codeclimate.com/github/icoz/habraparse)
 
 Парсер для проектов Habrahabr.ru и Geektimes.ru 
 
