@@ -11,5 +11,5 @@ Pyphen==0.9.4
 requests==2.12.3
 six==1.10.0
 tinycss==0.4
-WeasyPrint>=0.34
+WeasyPrint>=0.33
 webencodings==0.5
