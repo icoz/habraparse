@@ -1,5 +1,5 @@
-cairocffi==0.7.2
-CairoSVG==2.0.0
+cairocffi>=0.7.2
+CairoSVG>=2.0.0
 cffi==1.9.1
 cssselect==1.0.0
 docopt==0.6.2
@@ -11,5 +11,5 @@ Pyphen==0.9.4
 requests==2.12.3
 six==1.10.0
 tinycss==0.4
-WeasyPrint==0.33
+WeasyPrint>=0.34
 webencodings==0.5

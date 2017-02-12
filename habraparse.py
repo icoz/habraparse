@@ -55,16 +55,23 @@ def prepare_html(topic, with_comments=False):
     <meta http-equiv="content-type" content="text/html; charset=utf-8">
     <meta charset="UTF-8">
     <title>{title}</title>
+    <meta name="author" content="{author}">
+    <meta name="generator" content="habraparse">
+    <meta name="description" content="{desc}">
+    <meta name="keywords" content="{keywords}">
     </head>
     <body>
     <div id="layout">
     <div class="inner">
         <div class="content_left">
-            <div class="post_show">
-                <div class="post shortcuts_item">
+            <!-- <div class="post_show"> -->
+            <div class="post__body post__body_full">
+                <!-- <div class="post shortcuts_item"> -->
+                <div class="content html_format">
                     <h1 class="title"><span class="post_title">{title}</span></h1>
                     <div class="author">
-                        <a title="Автор текста" href="http://habrahabr.ru/users/{author}/" >{author}</a>
+                        <!-- <a title="Автор текста" href="http://habrahabr.ru/users/{author}/" >{author}</a> -->
+                        <a title="Автор текста" href="{author_url}" >{author}</a>
                     </div>
                     {text}
                 </div>
@@ -89,11 +96,13 @@ def prepare_html(topic, with_comments=False):
     '''
     if with_comments:
         html_format = html_head + html_cmnts + html_foot
-        html = html_format.format(title=t.title(), author=t.author(), text=t.text(),
+        html = html_format.format(title=t.title(), author=t.author(), author_url=t.author_url(), desc=t.desc(), text=t.text(),
+                                  addstyle=t.styles(), keywords=t.keywords(),
                                   comments=generate_comments(t.comments(), 0), cmnts_count=t.comments_count())
     else:
         html_format = html_head + html_foot
-        html = html_format.format(title=t.title(), author=t.author(), text=t.text())
+        html = html_format.format(title=t.title(), author=t.author(), author_url=t.author_url(), desc=t.desc(), text=t.text(),
+                                  addstyle=t.styles(), keywords=t.keywords() )
     html = str(html).replace('"//habrastorage.org', '"https://habrastorage.org')
     return html
 
@@ -137,7 +146,8 @@ def save_pdf(topic_id: int, filename: str, with_comments: bool = False, project:
         ht = HabraTopic(topic_id)
 
     html = prepare_html(ht, with_comments=with_comments)
-    css = CSS(string='@page { size: A4; margin: 1cm !important}')
+    css = CSS(string='@page { size: A4; margin: 1cm; !important;} img { width: 100%; height: auto; !important; }')
+    #css = CSS(string='@page { size: A4 landscape; margin: 1cm !important}')
     HTML(string=html).write_pdf(filename, stylesheets=[css])
 
 
