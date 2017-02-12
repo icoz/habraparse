@@ -13,4 +13,3 @@ six==1.10.0
 tinycss==0.4
 WeasyPrint>=0.33
 webencodings==0.5
-six
