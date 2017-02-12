@@ -31,7 +31,7 @@ class TMTopic(object):
         return self.url
 
     def _getTopicUrl(self, topic_id):
-        return str('http://{domain}/post/{tid}/').format(domain=self.domain, tid=topic_id)
+        return str('https://{domain}/post/{tid}/').format(domain=self.domain, tid=topic_id)
 
     def _parseTopic(self):
         '''
@@ -53,7 +53,27 @@ class TMTopic(object):
         tmp = doc.xpath("//div[@class='author-info__username']//a[@class='author-info__nickname']") or \
               doc.xpath("//div[@class='author-info__username']//a[@class='author-info__name']") or \
               doc.xpath("//div[@class='author-info__username']//span[@class='author-info__name']")
-        self.post['author'] = tmp[0].text if len(tmp) else ''
+        if len(tmp):
+            self.post['author_url'] = ('https://' + self.domain + tmp[0].attrib['href'] )
+            self.post['author'] = tmp[0].text
+        else:
+            self.post['author_url']= ''
+            self.post['author'] = ''
+        ###
+        post_desc = doc.xpath("//meta[@name='description']/@content")
+        self.post['desc'] = post_desc[0].strip("\r\n")
+        #
+        tmp = doc.xpath("//link[@rel='stylesheet'][@media='all']")
+        style = '\n'.join([ str(etree.tostring(st,pretty_print=True, method='html').decode('utf-8')).strip("\n\r") for st in tmp ])
+        self.post['styles'] = style if len(style)>2 else ''
+        #
+        #tmp = doc.xpath("//style[@type='text/css']")
+        #style =''.join([ str(etree.tostring(st,pretty_print=True, method='html').decode('utf-8')) for st in tmp ])
+        #self.post['styles'] += style if (len(style)>2) else ''
+        #
+        post_keywords = doc.xpath("//meta[@name='keywords']/@content")
+        self.post['keywords'] = post_keywords[0].strip("\r\n")
+        ###
         # bug in class 'infopanel ' - space added
         tmp = doc.xpath(
             "//ul[@class='postinfo-panel postinfo-panel_post']//span[@class='oting-wjt__counter-score js-score']")
@@ -109,7 +129,19 @@ class TMTopic(object):
 
     def author(self):
         return deepcopy(self.post['author'])
+###
+    def author_url(self):
+        return deepcopy(self.post['author_url'])
 
+    def desc(self):
+        return deepcopy(self.post['desc'])
+
+    def styles(self):
+        return deepcopy(self.post['styles'])
+
+    def keywords(self):
+        return deepcopy(self.post['keywords'])
+###
     def text(self):
         return deepcopy(self.post['text'])
 
