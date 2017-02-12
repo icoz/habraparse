@@ -51,15 +51,13 @@ class TMTopic(object):
             raise PostDeleted
         self.post['title'] = post_title
         tmp = \
+            doc.xpath("//a[@class='post-type__value post-type__value_author']") or \
             doc.xpath("//div[@class='author-info__username']//a[@class='author-info__nickname']") or \
             doc.xpath("//div[@class='author-info__username']//a[@class='author-info__name']") or \
             doc.xpath("//div[@class='author-info__username']//span[@class='author-info__name']")
         if len(tmp):
             self.post['author'] = tmp[0].text
-            if tmp[0].attrib.get('href'):
-                self.post['author_url'] = ('https://' + self.domain + tmp[0].attrib['href'] )
-            else:
-                self.post['author_url'] = "https://{}/users/{}".format(self.domain, self.post['author'])
+            self.post['author_url'] = ('https://' + self.domain + tmp[0].attrib['href'] ) if 'href' in tmp[0].attrib else ''
         else:
             self.post['author_url']= ''
             self.post['author'] = ''
