@@ -48,7 +48,7 @@ class TMTopic(object):
             self.post['hubs'].append((h.text, h.attrib['href']))
         post_title = doc.xpath('//h1[@class="post__title"]/span')
         if len(post_title) == 0:
-            raise PostDeleted
+            raise PostDeleted('Post Deleted! {} gives status_code={}'.format(self.url, req.status_code))
         self.post['title'] = post_title
         tmp = \
             doc.xpath("//a[@class='post-type__value post-type__value_author']") or \
@@ -166,7 +166,7 @@ class TMTopic(object):
 class HabraTopic(TMTopic):
     def __init__(self, topic_id):
         super().__init__(topic_id, domain='habrahabr.ru')
-        self.post['title'] = self.post['title'][1].text
+        self.post['title'] = self.post['title'][0].text
 
 
 class GeektimesTopic(TMTopic):
