@@ -46,9 +46,10 @@ class TMTopic(object):
         hubs = doc.xpath("//div[@class='hubs']/a")
         for h in hubs:
             self.post['hubs'].append((h.text, h.attrib['href']))
-        post_title = doc.xpath('//h1[@class="post__title"]/span')
+        post_title = doc.xpath('//h1[@class="post__title"]/span') or \
+                     doc.xpath('//h1[@class="megapost-head__title"]')
         if len(post_title) == 0:
-            raise PostDeleted
+            raise PostDeleted('Post Deleted! {} gives status_code={}'.format(self.url, req.status_code))
         self.post['title'] = post_title
         tmp = \
             doc.xpath("//a[@class='post-type__value post-type__value_author']") or \
@@ -74,13 +75,14 @@ class TMTopic(object):
         #self.post['styles'] += style if (len(style)>2) else ''
         #
         post_keywords = doc.xpath("//meta[@name='keywords']/@content")
-        self.post['keywords'] = post_keywords[0].strip("\r\n")
+        self.post['keywords'] = post_keywords[0].strip("\r\n") if len(post_keywords) else ''
         ###
         # bug in class 'infopanel ' - space added
         tmp = doc.xpath(
             "//ul[@class='postinfo-panel postinfo-panel_post']//span[@class='oting-wjt__counter-score js-score']")
         self.post['rating'] = tmp[0].text if len(tmp) else ''
-        tmp = doc.xpath("//div[@class='content html_format']")
+        tmp = doc.xpath("//div[@class='content html_format']") or \
+              doc.xpath('//div[@class="article__body"]')
         self.post['text'] = etree.tostring(tmp[0], pretty_print=True, method='html').decode('utf-8') \
             if len(tmp) else ''
         self.post['comments'] = []
@@ -166,7 +168,7 @@ class TMTopic(object):
 class HabraTopic(TMTopic):
     def __init__(self, topic_id):
         super().__init__(topic_id, domain='habrahabr.ru')
-        self.post['title'] = self.post['title'][1].text
+        self.post['title'] = self.post['title'][0].text
 
 
 class GeektimesTopic(TMTopic):
