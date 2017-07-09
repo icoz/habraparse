@@ -112,6 +112,10 @@ class TMUser(object):
 
     def _parseUserpage(self):
         # print(self._doc)
+        # check for BAN
+        if self._doc.xpath("//div[@class='main']/h1")[0].text.strip() == "Доступ закрыт":
+            # maybe raise ERROR???
+            return
         p_tags = self._doc.xpath("//div[@class='user_profile']//ul[@id='people-tags']//a/span")
         date_of_registration = self._doc.xpath("//div[@class='user_profile']//dd[@class='grey']")[0].text.strip()
         tmp = self._doc.xpath("//div[@class='user_profile']//dl[last()]/dd")
@@ -184,6 +188,10 @@ class TMUser(object):
         """
         url = self._genFavoritesUrlByUser(self._username)
         doc = html.document_fromstring(requests.get(url).text)
+        # check for BAN
+        if doc.xpath("//div[@class='main']/h1")[0].text.strip() == "Доступ закрыт":
+            # maybe raise ERROR???
+            return
         out = dict()
         pages = get_pages(doc)
         favs = doc.xpath("//div[@class='user_favorites']//a[@class='post__title_link']")
