@@ -81,8 +81,8 @@ class TMTopic(object):
         tmp = doc.xpath(
             "//ul[@class='postinfo-panel postinfo-panel_post']//span[@class='oting-wjt__counter-score js-score']")
         self.post['rating'] = tmp[0].text if len(tmp) else ''
-        tmp = doc.xpath("//div[@class='content html_format']") or \
-              doc.xpath('//div[@class="article__body"]')
+        tmp = doc.xpath("//div[@class='content html_format js-mediator-article']") or \
+              doc.xpath('//div[@class="article__body js-mediator-article"]')
         self.post['text'] = etree.tostring(tmp[0], pretty_print=True, method='html').decode('utf-8') \
             if len(tmp) else ''
         self.post['comments'] = []
