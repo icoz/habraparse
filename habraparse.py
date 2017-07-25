@@ -215,14 +215,17 @@ def create_url_list(username, filename, project='h'):
     T = GeektimesTopic if project == 'g' else HabraTopic
     urls = list()
     favs_id = hu.favorites()
-    for topic_name in favs_id:
-        try:
-            urls.append(T(favs_id[topic_name]).getTopicUrl())
-        except PostDeleted:
-            print('Post {} is deleted!'.format(favs_id[topic_name]))
-    urls.sort()
-    with open(filename, 'wt') as f:
-        f.write('\n'.join(urls))
+    if favs_id:
+        for topic_name in favs_id:
+            try:
+                urls.append(T(favs_id[topic_name]).getTopicUrl())
+            except PostDeleted:
+                print('Post {} is deleted!'.format(favs_id[topic_name]))
+        urls.sort()
+        with open(filename, 'wt') as f:
+            f.write('\n'.join(urls))
+    else:
+        print("Something went wrong. Maybe user is banned or deleted.")
 
 
 import docopt

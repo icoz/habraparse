@@ -242,15 +242,15 @@ class TestGTTopic(TestCase):
         pp.pprint(t.post['comments_count'])
         pp.pprint(t.post['rating'])
 
-    def test_topic2(self):
-        t = GeektimesTopic(245130)
-        pp = pprint.PrettyPrinter(indent=4)
-        pp.pprint(t.author())
-        self.assertEqual(t.author(), '@Robotex')
-        pp.pprint(t.title())
-        self.assertEqual(t.title(), 'Autodesk и Voxel8 делают 3D-печать электроники реальностью')
-        pp.pprint(t.post['comments_count'])
-        pp.pprint(t.post['rating'])
+    # def test_topic2(self):
+    #     t = GeektimesTopic(245130)
+    #     pp = pprint.PrettyPrinter(indent=4)
+    #     pp.pprint(t.author())
+    #     self.assertEqual(t.author(), '@Robotex')
+    #     pp.pprint(t.title())
+    #     self.assertEqual(t.title(), 'Autodesk и Voxel8 делают 3D-печать электроники реальностью')
+    #     pp.pprint(t.post['comments_count'])
+    #     pp.pprint(t.post['rating'])
 
 # class TestMMTopic(TestCase):
 #     def test_topic(self):
