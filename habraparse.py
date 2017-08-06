@@ -48,6 +48,13 @@ def prepare_html(topic, with_comments=False):
     #     <link href="https://habracdn.net/habr/styles/1464788371/_build/global_main.css" rel="stylesheet" media="all" />
     #     <link href="https://habracdn.net/habr/styles/1464788371/_build/company_post_show_common.css" rel="stylesheet" media="all" />
     #     <link href="https://habracdn.net/habr/styles/1464788371/_build/post_common_css.css" rel="stylesheet" media="all" />
+    # 09.07.2017
+    # <link href="https://habracdn.net/habr/styles/1499416660/_build/post_common_css.css" rel="stylesheet" media="all" />
+    # <link href="https://habracdn.net/habr/styles/1499416660/_build/global_main.css" rel="stylesheet" media="all" />
+    # <link href="https://habracdn.net/habr/styles/1499416660/_build/post_common_css.css" rel="stylesheet" media="print" />
+    # <link href="https://habracdn.net/habr/styles/1499416660/_build/global_main.css" rel="stylesheet" media="print" />
+
+
 
     html_head = '''
     <html>

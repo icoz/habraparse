@@ -81,7 +81,8 @@ class TMTopic(object):
         tmp = doc.xpath(
             "//ul[@class='postinfo-panel postinfo-panel_post']//span[@class='oting-wjt__counter-score js-score']")
         self.post['rating'] = tmp[0].text if len(tmp) else ''
-        tmp = doc.xpath("//div[@class='content html_format']") or \
+        tmp = doc.xpath("//div[@class='content html_format js-mediator-article']") or \
+              doc.xpath("//div[@class='content html_format']") or \
               doc.xpath('//div[@class="article__body"]')
         self.post['text'] = etree.tostring(tmp[0], pretty_print=True, method='html').decode('utf-8') \
             if len(tmp) else ''
@@ -89,7 +90,7 @@ class TMTopic(object):
         # bug in class 'comments_list ' - space added
         # comments = doc.xpath("//div[@class='comments_list ']//div[@class='comment_item']")
         # comments = doc.xpath("//ul[@id='comments-list']//li[@class='comment_item']")
-        # record = (author, text)
+        # record = (author, text)text
         authors = list(
             map(lambda x: x.text, doc.xpath("//ul[@id='comments-list']//a[@class='comment-item__username']"))
         )
