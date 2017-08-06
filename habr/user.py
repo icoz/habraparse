@@ -272,11 +272,11 @@ class Test_HabraUser(TestCase):
     def test_favs(self):
         self.pp.pprint(self.hu.favorites())
 
-    def test_readonly_user(self):
-        self.pp.pprint('starting test for readonly xvitaly')
-        hu = HabraUser('xvitaly')
-        self.pp.pprint('date=')
-        self.pp.pprint(hu.profile()['registration_date'])
+    # def test_readonly_user(self):
+    #     self.pp.pprint('starting test for readonly xvitaly')
+    #     hu = HabraUser('xvitaly')
+    #     self.pp.pprint('date=')
+    #     self.pp.pprint(hu.profile()['registration_date'])
 
     def test_user_posts(self):
         hu = HabraUser('Zelenyikot')
