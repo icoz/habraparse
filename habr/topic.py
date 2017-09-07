@@ -46,8 +46,9 @@ class TMTopic(object):
         hubs = doc.xpath("//div[@class='hubs']/a")
         for h in hubs:
             self.post['hubs'].append((h.text, h.attrib['href']))
-        post_title = doc.xpath('//h1[@class="post__title"]/span') or \
-                     doc.xpath('//h1[@class="megapost-head__title"]')
+        post_title = doc.xpath("//h1[@class='post__title']/span") or \
+                     doc.xpath("//h1[@class='megapost-head__title']") or \
+                     doc.xpath("//h1[@class='post__title post__title_full']/span")
         if len(post_title) == 0:
             raise PostDeleted('Post Deleted! {} gives status_code={}'.format(self.url, req.status_code))
         self.post['title'] = post_title
@@ -55,7 +56,8 @@ class TMTopic(object):
             doc.xpath("//a[@class='post-type__value post-type__value_author']") or \
             doc.xpath("//div[@class='author-info__username']//a[@class='author-info__nickname']") or \
             doc.xpath("//div[@class='author-info__username']//a[@class='author-info__name']") or \
-            doc.xpath("//div[@class='author-info__username']//span[@class='author-info__name']")
+            doc.xpath("//div[@class='author-info__username']//span[@class='author-info__name']") or \
+            doc.xpath("//div[@class='user-info__links']//a[@class='user-info__nickname user-info__nickname_doggy']")
         if len(tmp):
             self.post['author'] = tmp[0].text
             self.post['author_url'] = ('https://' + self.domain + tmp[0].attrib['href'] ) if 'href' in tmp[0].attrib else ''
@@ -82,7 +84,8 @@ class TMTopic(object):
             "//ul[@class='postinfo-panel postinfo-panel_post']//span[@class='oting-wjt__counter-score js-score']")
         self.post['rating'] = tmp[0].text if len(tmp) else ''
         tmp = doc.xpath("//div[@class='content html_format js-mediator-article']") or \
-              doc.xpath('//div[@class="article__body js-mediator-article"]')
+              doc.xpath('//div[@class="article__body js-mediator-article"]') or \
+              doc.xpath('//div[@class="post__text post__text-html js-mediator-article"]')
         self.post['text'] = etree.tostring(tmp[0], pretty_print=True, method='html').decode('utf-8') \
             if len(tmp) else ''
         self.post['comments'] = []
