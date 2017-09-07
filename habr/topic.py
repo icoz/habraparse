@@ -59,7 +59,7 @@ class TMTopic(object):
             doc.xpath("//div[@class='author-info__username']//span[@class='author-info__name']") or \
             doc.xpath("//div[@class='user-info__links']//a[@class='user-info__nickname user-info__nickname_doggy']")
         if len(tmp):
-            self.post['author'] = tmp[0].text
+            self.post['author'] = (tmp[0].text) if tmp[0].text.startswith( '@' ) else '@' + tmp[0].text
             self.post['author_url'] = ('https://' + self.domain + tmp[0].attrib['href'] ) if 'href' in tmp[0].attrib else ''
         else:
             self.post['author_url']= ''
