@@ -94,13 +94,13 @@ class TMTopic(object):
         # comments = doc.xpath("//ul[@id='comments-list']//li[@class='comment_item']")
         # record = (author, text)
         authors = list(
-            map(lambda x: x.text, doc.xpath("//ul[@id='comments-list']//a[@class='comment-item__username']"))
+            map(lambda x: x.text, doc.xpath("//ul[@id='comments-list']//span[@class='user-info__nickname user-info__nickname_small user-info__nickname_comment']"))
         )
         cmt_texts = list(map(lambda x: etree.tostring(x, pretty_print=True, method='html').decode('utf-8'),
-                             doc.xpath("//ul[@id='comments-list']//div[starts-with(@class,'message html_format ')]"))
+                             doc.xpath("//ul[@id='comments-list']//div[starts-with(@class,'comment__message ')]"))
                          )
         c_id = list(
-            map(lambda x: int(x.attrib['id'][8:]), doc.xpath("//ul[@id='comments-list']//li[@class='comment_item']"))
+            map(lambda x: int(x.attrib['rel']), doc.xpath("//ul[@id='comments-list']//li[@class='content-list__item content-list__item_comment js-comment ']"))
         )
         p_id = list(map(lambda x: int(x.attrib['data-parent_id']),
                         doc.xpath("//ul[@id='comments-list']//span[@class='parent_id']")))
