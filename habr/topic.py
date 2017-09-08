@@ -46,8 +46,9 @@ class TMTopic(object):
         hubs = doc.xpath("//div[@class='hubs']/a")
         for h in hubs:
             self.post['hubs'].append((h.text, h.attrib['href']))
-        post_title = doc.xpath('//h1[@class="post__title"]/span') or \
-                     doc.xpath('//h1[@class="megapost-head__title"]')
+        post_title = doc.xpath("//h1[@class='post__title']/span") or \
+                     doc.xpath("//h1[@class='megapost-head__title']") or \
+                     doc.xpath("//h1[@class='post__title post__title_full']/span")
         if len(post_title) == 0:
             raise PostDeleted('Post Deleted! {} gives status_code={}'.format(self.url, req.status_code))
         self.post['title'] = post_title
@@ -55,9 +56,10 @@ class TMTopic(object):
             doc.xpath("//a[@class='post-type__value post-type__value_author']") or \
             doc.xpath("//div[@class='author-info__username']//a[@class='author-info__nickname']") or \
             doc.xpath("//div[@class='author-info__username']//a[@class='author-info__name']") or \
-            doc.xpath("//div[@class='author-info__username']//span[@class='author-info__name']")
+            doc.xpath("//div[@class='author-info__username']//span[@class='author-info__name']") or \
+            doc.xpath("//div[@class='user-info__links']//a[@class='user-info__nickname user-info__nickname_doggy']")
         if len(tmp):
-            self.post['author'] = tmp[0].text
+            self.post['author'] = (tmp[0].text) if tmp[0].text.startswith( '@' ) else '@' + tmp[0].text
             self.post['author_url'] = ('https://' + self.domain + tmp[0].attrib['href'] ) if 'href' in tmp[0].attrib else ''
         else:
             self.post['author_url']= ''
@@ -82,7 +84,8 @@ class TMTopic(object):
             "//ul[@class='postinfo-panel postinfo-panel_post']//span[@class='oting-wjt__counter-score js-score']")
         self.post['rating'] = tmp[0].text if len(tmp) else ''
         tmp = doc.xpath("//div[@class='content html_format js-mediator-article']") or \
-              doc.xpath('//div[@class="article__body js-mediator-article"]')
+              doc.xpath('//div[@class="article__body js-mediator-article"]') or \
+              doc.xpath('//div[@class="post__text post__text-html js-mediator-article"]')
         self.post['text'] = etree.tostring(tmp[0], pretty_print=True, method='html').decode('utf-8') \
             if len(tmp) else ''
         self.post['comments'] = []
@@ -91,13 +94,13 @@ class TMTopic(object):
         # comments = doc.xpath("//ul[@id='comments-list']//li[@class='comment_item']")
         # record = (author, text)
         authors = list(
-            map(lambda x: x.text, doc.xpath("//ul[@id='comments-list']//a[@class='comment-item__username']"))
+            map(lambda x: x.text, doc.xpath("//ul[@id='comments-list']//span[@class='user-info__nickname user-info__nickname_small user-info__nickname_comment']"))
         )
         cmt_texts = list(map(lambda x: etree.tostring(x, pretty_print=True, method='html').decode('utf-8'),
-                             doc.xpath("//ul[@id='comments-list']//div[starts-with(@class,'message html_format ')]"))
+                             doc.xpath("//ul[@id='comments-list']//div[starts-with(@class,'comment__message ')]"))
                          )
         c_id = list(
-            map(lambda x: int(x.attrib['id'][8:]), doc.xpath("//ul[@id='comments-list']//li[@class='comment_item']"))
+            map(lambda x: int(x.attrib['rel']), doc.xpath("//ul[@id='comments-list']//li[@class='content-list__item content-list__item_comment js-comment ']"))
         )
         p_id = list(map(lambda x: int(x.attrib['data-parent_id']),
                         doc.xpath("//ul[@id='comments-list']//span[@class='parent_id']")))
