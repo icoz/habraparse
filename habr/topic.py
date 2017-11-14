@@ -47,7 +47,8 @@ class TMTopic(object):
         for h in hubs:
             self.post['hubs'].append((h.text, h.attrib['href']))
         post_title = doc.xpath('//h1[@class="post__title"]/span') or \
-                     doc.xpath('//h1[@class="megapost-head__title"]')
+                     doc.xpath('//h1[@class="megapost-head__title"]') or \
+                     doc.xpath('//h1[@class="post__title post__title_full"]/span[@class="post__title-text"]')
         if len(post_title) == 0:
             raise PostDeleted('Post Deleted! {} gives status_code={}'.format(self.url, req.status_code))
         self.post['title'] = post_title
@@ -55,7 +56,9 @@ class TMTopic(object):
             doc.xpath("//a[@class='post-type__value post-type__value_author']") or \
             doc.xpath("//div[@class='author-info__username']//a[@class='author-info__nickname']") or \
             doc.xpath("//div[@class='author-info__username']//a[@class='author-info__name']") or \
-            doc.xpath("//div[@class='author-info__username']//span[@class='author-info__name']")
+            doc.xpath("//div[@class='author-info__username']//span[@class='author-info__name']") or \
+            doc.xpath("//div[@class='page-header__info']//span[@class='page-header__info-title']") or \
+            doc.xpath("//header[@class='post__meta']//span[@class='user-info__nickname user-info__nickname_small']")
         if len(tmp):
             self.post['author'] = tmp[0].text
             self.post['author_url'] = ('https://' + self.domain + tmp[0].attrib['href'] ) if 'href' in tmp[0].attrib else ''
@@ -85,51 +88,24 @@ class TMTopic(object):
               doc.xpath('//div[@class="article__body js-mediator-article"]')
         self.post['text'] = etree.tostring(tmp[0], pretty_print=True, method='html').decode('utf-8') \
             if len(tmp) else ''
+        # get comments
         self.post['comments'] = []
-        # bug in class 'comments_list ' - space added
-        # comments = doc.xpath("//div[@class='comments_list ']//div[@class='comment_item']")
-        # comments = doc.xpath("//ul[@id='comments-list']//li[@class='comment_item']")
-        # record = (author, text)
-        authors = list(
-            map(lambda x: x.text, doc.xpath("//ul[@id='comments-list']//a[@class='comment-item__username']"))
-        )
-        cmt_texts = list(map(lambda x: etree.tostring(x, pretty_print=True, method='html').decode('utf-8'),
-                             doc.xpath("//ul[@id='comments-list']//div[starts-with(@class,'message html_format ')]"))
-                         )
-        c_id = list(
-            map(lambda x: int(x.attrib['id'][8:]), doc.xpath("//ul[@id='comments-list']//li[@class='comment_item']"))
-        )
-        p_id = list(map(lambda x: int(x.attrib['data-parent_id']),
-                        doc.xpath("//ul[@id='comments-list']//span[@class='parent_id']")))
-        time = list(map(lambda x: x.text.strip(), doc.xpath("//ul[@id='comments-list']//time")))
-        tpl = tuple(zip(authors, cmt_texts, c_id, p_id, time))
-        self.post['comments'] = tuple(
-            map(
-                lambda x:
-                {
-                    'author': x[0],
-                    'text': x[1],
-                    'c_id': x[2],
-                    'p_id': x[3],
-                    'time': x[4],
-                },
-                tpl)
-        )
+        for cmnt in doc.xpath("//ul[@id='comments-list']//li[@class='content-list__item content-list__item_comment js-comment ']"):
+            try:
+                self.post['comments'].append(
+                    {
+                        'author': cmnt.find_class("user-info__nickname")[0].text, # if cmnt.find_class("user-info__nickname") else "",
+                        'text': etree.tostring(cmnt.find_class('comment__message')[0], pretty_print=True, method='html').decode('utf-8').strip(), # if cmnt.find_class('comment__message') else "",
+                        # 'text': cmnt.find_class('comment__message')[0].text, # if cmnt.find_class('comment__message') else "",
+                        'c_id': int(cmnt.attrib['rel']),
+                        'p_id': int(cmnt.find_class("parent_id")[0].attrib['data-parent_id']),
+                        'time': cmnt.find_class('comment__date-time')[0].text
+                    }
+                )
+            except:
+                print('err=',cmnt.attrib['rel'])
+                pass
         self.post['comments_count'] = len(self.post['comments'])
-
-        # self.post['comments'] = list()
-        # for c in comments:
-        #     # self.post['comments'].append(etree.tostring(c, pretty_print=True, method='html').decode('utf-8'))
-        #     # record = (author, text, c_id, parent_c_id)
-        #     author = c.xpath("//a[@class='comment-item__username']")
-        #     if len(author): author = author[0].text
-        #     else: author = '<anonymous>'
-        #     text = c.xpath("//div[@class='message html_format ']")
-        #     if text != '': text = text[0].text
-        #     c_id = c.attrib['id']
-        #     p_id = c.xpath("//span[@class='parent_id']")[0]
-        #     if p_id != '': p_id = p_id.attrib['data-parent_id']
-        #     self.post['comments'].append((author, text, c_id, p_id))
 
     def author(self):
         return deepcopy(self.post['author'])
@@ -156,7 +132,7 @@ class TMTopic(object):
         return deepcopy(self.post['rating'])
 
     def comments(self):
-        return deepcopy(self.post['comments'])
+        return deepcopy(tuple(self.post['comments']))
 
     def comments_count(self):
         return deepcopy(self.post['comments_count'])
@@ -191,21 +167,24 @@ class TestHabraTopic(TestCase):
         t = HabraTopic(231957)
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(t.author())
-        self.assertEqual(t.author(), '@yaklamm')
+        self.assertEqual(t.author(), 'yaklamm')
         pp.pprint(t.title())
         self.assertEqual(t.title(), 'Memory management в ядре Linux. Семинар в Яндексе')
         pp.pprint(t.post['comments_count'])
         pp.pprint(t.post['rating'])
 
     def test_topic2(self):
-        t = HabraTopic(208802)
         pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint("Start for post 208802")
+        t = HabraTopic(208802)
         pp.pprint(t.author())
-        self.assertEqual(t.author(), '@icoz')
+        self.assertEqual(t.author(), 'icoz')
         self.assertEqual(t.title(), 'Экспорт Избранного на Хабре в PDF')
         pp.pprint(t.title())
         pp.pprint(t.post['comments_count'])
         pp.pprint(t.post['rating'])
+        # pp.pprint(t.comments())
+        # pp.pprint(t.comments()[1])
         self.assertEqual(t.comments()[0]['author'], 'keccak')
         self.assertEqual(t.comments()[1]['author'], 'icoz')
 
@@ -213,7 +192,7 @@ class TestHabraTopic(TestCase):
         t = HabraTopic(28108)
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(t.author())
-        self.assertEqual(t.author(), '@cachealot')
+        self.assertEqual(t.author(), 'cachealot')
         self.assertEqual(t.title(), 'эффективное использование vim: «from the very begining»')
         pp.pprint(t.title())
         pp.pprint(t.post['comments_count'])
@@ -230,13 +209,16 @@ class TestHabraTopic(TestCase):
         self.assertEqual(t.comments()[1]['c_id'], 734630)
         self.assertEqual(t.comments()[1]['p_id'], 734629)
 
+    def test_topic4(self):
+        t = HabraTopic(330358)
+        self.assertEqual(t.title(), 'Rapid STP')
 
 class TestGTTopic(TestCase):
     def test_topic(self):
         t = GeektimesTopic(243447)
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(t.author())
-        self.assertEqual(t.author(), '@SOUNDPAL')
+        self.assertEqual(t.author(), 'Soundpal')
         pp.pprint(t.title())
         self.assertEqual(t.title(), 'На что влияет сопротивление наушников')
         pp.pprint(t.post['comments_count'])
