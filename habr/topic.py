@@ -84,10 +84,10 @@ class TMTopic(object):
         tmp = doc.xpath(
             "//ul[@class='postinfo-panel postinfo-panel_post']//span[@class='oting-wjt__counter-score js-score']")
         self.post['rating'] = tmp[0].text if len(tmp) else ''
-        tmp = doc.xpath("//div[@class='content html_format js-mediator-article']") or \
-              doc.xpath('//div[@class="article__body js-mediator-article"]')
-        self.post['text'] = etree.tostring(tmp[0], pretty_print=True, method='html').decode('utf-8') \
-            if len(tmp) else ''
+        # tmp = doc.xpath("//div[@class='content html_format js-mediator-article']") or \
+        #       doc.xpath('//div[@class="article__body js-mediator-article"]') or \
+        tmp = doc.xpath('//div[@class="post__text post__text-html js-mediator-article"]')
+        self.post['text'] = etree.tostring(tmp[0], pretty_print=True, method='html').decode('utf-8') if len(tmp) else ''
         # get comments
         self.post['comments'] = []
         for cmnt in doc.xpath("//ul[@id='comments-list']//li[@class='content-list__item content-list__item_comment js-comment ']"):
