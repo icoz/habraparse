@@ -53,8 +53,9 @@ def prepare_html(topic, with_comments=False):
     # <link href="https://habracdn.net/habr/styles/1499416660/_build/global_main.css" rel="stylesheet" media="all" />
     # <link href="https://habracdn.net/habr/styles/1499416660/_build/post_common_css.css" rel="stylesheet" media="print" />
     # <link href="https://habracdn.net/habr/styles/1499416660/_build/global_main.css" rel="stylesheet" media="print" />
-
-
+    # 14.08.2018
+    # <link href = "https://dr.habracdn.net/habrcom/styles/1534243008/_build/global_main.css" rel = "stylesheet" media = "all" / >
+    # https://dr.habracdn.net/habrcom/styles/1534243008/stylesheets.mobile.css
 
     html_head = '''
     <html>
@@ -66,6 +67,8 @@ def prepare_html(topic, with_comments=False):
     <meta name="generator" content="habraparse">
     <meta name="description" content="{desc}">
     <meta name="keywords" content="{keywords}">
+    <meta name="viewport" content="width=device-width">
+    <link href = "https://dr.habracdn.net/habrcom/styles/1534243008/stylesheets.mobile.css" rel = "stylesheet" media = "all" />
     </head>
     <body>
     <div id="layout">
