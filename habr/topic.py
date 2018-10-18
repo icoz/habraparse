@@ -105,7 +105,7 @@ class TMTopic(object):
                     }
                 )
             except:
-                print('err=',cmnt.attrib['rel'])
+                print('err while parse comment_id =', cmnt.attrib['rel'], " (возможно НЛО)")
                 pass
         self.post['comments_count'] = len(self.post['comments'])
 
