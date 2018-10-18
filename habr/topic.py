@@ -220,7 +220,7 @@ class TestGTTopic(TestCase):
         t = GeektimesTopic(243447)
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(t.author())
-        self.assertEqual(t.author(), 'Soundpal')
+        self.assertEqual(t.author(), 'SOUNDPAL')
         pp.pprint(t.title())
         self.assertEqual(t.title(), 'На что влияет сопротивление наушников')
         pp.pprint(t.post['comments_count'])
