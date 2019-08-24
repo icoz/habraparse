@@ -12,4 +12,5 @@ engines:
 ratings:
   paths:
   - "**.py"
+  - "*/*.py"
 exclude_paths: []
