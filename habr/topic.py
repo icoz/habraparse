@@ -205,7 +205,7 @@ class TestHabraTopic(TestCase):
         self.assertEqual(txt, 'не поверите, 3,5 часа убил на пост )')
         self.assertEqual(t.comments()[0]['c_id'], 734629)
         self.assertEqual(t.comments()[0]['p_id'], 0)
-        self.assertEqual(t.comments()[1]['author'], 'ShPashok')
+        self.assertEqual(t.comments()[1]['author'], 'mirge')
         txt = html.fromstring(t.comments()[1]['text']).text_content().replace("'",'').strip()
         self.assertEqual(txt, 'а 2 секунды на хабракат пожалели :)')
         self.assertEqual(t.comments()[1]['c_id'], 734630)
