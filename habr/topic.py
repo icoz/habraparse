@@ -93,8 +93,6 @@ class TMTopic(object):
         self.post['text'] = etree.tostring(tmp[0], pretty_print=True, method='html').decode('utf-8') if len(tmp) else ''
         # get comments
         self.post['comments'] = []
-        # for cmnt in doc.xpath("//ul[@id='comments-list']//li[@class='content-list__item content-list__item_comment js-comment ']"):
-        # for cmnt in doc.xpath("//div[@class='tm-page-article-comments__inner']//div[@class='tm-comments-list__comment']"):
         for cmnt in doc.xpath("//ul[@id='comments-list']//li[@class='content-list__item content-list__item_comment js-comment ']"):
             try:
                 cmnt_text = cmnt.find_class('comment__message')
@@ -106,8 +104,6 @@ class TMTopic(object):
                     {
                         'author': cmnt.find_class("user-info__nickname")[0].text, # if cmnt.find_class("user-info__nickname") else "",
                         'text': cmnt_text,
-                        # if cmnt.find_class('comment__message') else "",
-                        # 'text': cmnt.find_class('comment__message')[0].text, # if cmnt.find_class('comment__message') else "",
                         'c_id': int(cmnt.attrib['rel']),
                         'p_id': int(cmnt.find_class("parent_id")[0].attrib['data-parent_id']),
                         'time': cmnt.find_class('comment__date-time')[0].text
