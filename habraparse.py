@@ -11,34 +11,63 @@ from habr.user import HabraUser, GeektimesUser
 
 __author__ = 'icoz'
 
+
 def generate_comments(cmnts, id=0):
-    html_subcmnt = '''
-    <ul class="reply_comments" id="reply_comments_{c_id}">
-    {list_cmnts}
-    </ul>
-    '''
+    # html_subcmnt = '''
+    # <ul class="reply_comments" id="reply_comments_{c_id}">
+    # {list_cmnts}
+    # </ul>
+    # '''
+    # html_cmnt = '''
+    # <li class="comment_item" id="comment_{c_id}">
+    # <span class="parent_id" data-parent_id="{p_id}"></span>
+    # <div class="comment_body ">
+    #     <div class="info comments-list__item comment-item  " rel="{c_id}">
+    #         <span class="comment-item__user-info" data-user-login="{user}">
+    #         <a href="https://habrahabr.ru/users/{user}/" class="comment-item__username">{user}</a>
+	# 		<time class="comment-item__time_published">{time}</time>
+    #         </span>
+    #         <div class="message html_format ">
+    #             {cmnt_text}
+    #         </div>
+    #     </div>
+    # </div>
+    # '''
     html_cmnt = '''
-    <li class="comment_item" id="comment_{c_id}">
-    <span class="parent_id" data-parent_id="{p_id}"></span>
-    <div class="comment_body ">
-        <div class="info comments-list__item comment-item  " rel="{c_id}">
-            <span class="comment-item__user-info" data-user-login="{user}">
-            <a href="https://habrahabr.ru/users/{user}/" class="comment-item__username">{user}</a>
-			<time class="comment-item__time_published">{time}</time>
-            </span>
-            <div class="message html_format ">
-                {cmnt_text}
+        <div class="tm-comments-list__comment-wrapper">
+            <div class="tm-comments-list__comment">
+                <section>
+                    <article class="tm-comment" style="opacity: 1; padding-left: {padding}px;"><a name="comment_{c_id}"></a>
+                        <header class="tm-comment__header">
+                            <div class="tm-comment-head__inner">
+                                <a href="https://habr.com/ru/users/{user}/" class="tm-user-info tm-comment-head__user">
+                                    <span class="tm-user-info__username">{user}</span>
+                                </a>
+                                <time class="tm-comment-datetime tm-comment-head__datetime">
+                                    <a href="#comment_{c_id}" class="tm-comment-datetime__link">
+                                        <span class="">{time}</span>
+                                    </a>
+                                </time>
+                            </div>
+                        </header>
+                        <section>
+                            <div class="tm-comment-body__content">
+                                <div xmlns="http://www.w3.org/1999/xhtml">{cmnt_text}</div>
+                            </div>
+                        </section>
+                    </article>
+                </section>
             </div>
         </div>
-    </div>
     '''
-    cmnts2 = tuple(filter(lambda x: x['p_id'] == id, cmnts))
-    if len(cmnts2) == 0: return ''
     out = ''
-    for c in cmnts2:
-        out += html_cmnt.format(c_id=c['c_id'], p_id=id, user=c['author'], time=c['time'], cmnt_text=c['text'])
-        out += html_subcmnt.format(c_id = c['c_id'], list_cmnts=generate_comments(cmnts, c['c_id']))
+    for c in filter(lambda x: x['p_id'] == id, cmnts):
+        # print(c)
+        padding = 20 if c['p_id'] == id else 0
+        out += html_cmnt.format(c_id=c['c_id'], p_id=id, user=c['author'], time=c['time'], cmnt_text=c['text'], padding=padding)
+        # out += html_subcmnt.format(c_id = c['c_id'], list_cmnts=generate_comments(cmnts, c['c_id']))
     return out
+    # html_HEAD_cmnt.format(len_cmnts=len(cmnts), list_cmnts=out)
 
 def prepare_html(topic, with_comments=False):
     t = topic
@@ -56,6 +85,10 @@ def prepare_html(topic, with_comments=False):
     # 14.08.2018
     # <link href = "https://dr.habracdn.net/habrcom/styles/1534243008/_build/global_main.css" rel = "stylesheet" media = "all" / >
     # https://dr.habracdn.net/habrcom/styles/1534243008/stylesheets.mobile.css
+    # 26/08/2019
+    # https://m.habr.com/css/app.91a5df85.css
+    # https://dr.habracdn.net/habrcom/styles/1566568656/main.bundle.css
+    # <link href = "https://dr.habracdn.net/habrcom/styles/1566568656/main.bundle.css" rel = "stylesheet" media = "all" />
 
     html_head = '''
     <html>
@@ -68,39 +101,46 @@ def prepare_html(topic, with_comments=False):
     <meta name="description" content="{desc}">
     <meta name="keywords" content="{keywords}">
     <meta name="viewport" content="width=device-width">
-    <link href = "https://dr.habracdn.net/habrcom/styles/1534243008/stylesheets.mobile.css" rel = "stylesheet" media = "all" />
+    <link href = "https://m.habr.com/css/app.91a5df85.css" rel = "stylesheet" media = "all" />
     </head>
     <body>
-    <div id="layout">
-    <div class="inner">
-        <div class="content_left">
-            <!-- <div class="post_show"> -->
-            <div class="post__body post__body_full">
-                <!-- <div class="post shortcuts_item"> -->
-                <div class="content html_format">
-                    <h1 class="title"><span class="post_title">{title}</span></h1>
-                    <div class="author">
-                        <!-- <a title="Автор текста" href="http://habrahabr.ru/users/{author}/" >{author}</a> -->
-                        <a title="Автор текста" href="{author_url}" >{author}</a>
-                    </div>
-                    {text}
-                </div>
-            </div>
+        <div id="app">
+            <div class="tm-layout__wrapper tm-fira-loaded">
+                <div class="tm-layout">
+                    <div class="tm-page tm-page_narrow">
+                        <div style="display:;">
+                            <article class="tm-article tm-page-article__content tm-page-article__content_narrow"><!---->
+                                <div class="tm-user-meta"><a class="tm-user-info" href="{author_url}">
+                                    <span class="tm-user-info__username">{author}</span></a>
+                                </div>
+                                <h2 class="tm-article-title tm-article-title_fullview tm-article-title_fullview">
+                                    <span class="tm-article-title__text">{title}</span>
+                                </h2>
+                                <div class="tm-tags_post"></div>
+                                <div class="tm-article-body_formatted">
+                                    <div class="tm-article-body">
+                                        {text}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    
     '''
     html_cmnts = '''
-    <div class="comments_list " id="comments">
-        <h2 class="title ">
-          Комментарии (<span id="comments_count">{cmnts_count}</span>)
-        </h2>
-        <ul id="comments-list">
-            {comments}
-        </ul>
+    <div class="tm-page-article-comments__wrapper">
+        <div class="tm-page-article-comments__title">Комментарии <span class="tm-page-article-comments__comments-count">{cmnts_count}</span></div>
+        <div class="tm-page-article-comments__inner">
+            <section>
+                {comments}
+            </section>
+        </div>
     </div>
     '''
     html_foot = '''
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-    </div>
     </body>
     </html>
     '''
@@ -182,7 +222,7 @@ def save_all_favs_for_user(username, out_dir, save_in_html=True, with_comments=F
         elif limit_cnt > 0:
             limit_cnt -= 1
         topic_id = favs_id[topic_name]
-        print('Downloading "{}"...'.format(topic_name))
+        print('Downloading "{}" ({})...'.format(topic_name, topic_id))
         if save_by_name:
             t_name = topic_name.replace('/', '_').replace('\\', '_').replace('!', '.').replace(':', '.').replace(';',
                                                                                                                  '.')
