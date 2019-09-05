@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import os
+from copy import deepcopy
 from pprint import pprint
 import sys
 
@@ -13,26 +14,6 @@ __author__ = 'icoz'
 
 
 def generate_comments(cmnts, id=0):
-    # html_subcmnt = '''
-    # <ul class="reply_comments" id="reply_comments_{c_id}">
-    # {list_cmnts}
-    # </ul>
-    # '''
-    # html_cmnt = '''
-    # <li class="comment_item" id="comment_{c_id}">
-    # <span class="parent_id" data-parent_id="{p_id}"></span>
-    # <div class="comment_body ">
-    #     <div class="info comments-list__item comment-item  " rel="{c_id}">
-    #         <span class="comment-item__user-info" data-user-login="{user}">
-    #         <a href="https://habrahabr.ru/users/{user}/" class="comment-item__username">{user}</a>
-	# 		<time class="comment-item__time_published">{time}</time>
-    #         </span>
-    #         <div class="message html_format ">
-    #             {cmnt_text}
-    #         </div>
-    #     </div>
-    # </div>
-    # '''
     html_cmnt = '''
         <div class="tm-comments-list__comment-wrapper">
             <div class="tm-comments-list__comment">
@@ -62,12 +43,10 @@ def generate_comments(cmnts, id=0):
     '''
     out = ''
     for c in filter(lambda x: x['p_id'] == id, cmnts):
-        # print(c)
         padding = 20 if c['p_id'] == id else 0
         out += html_cmnt.format(c_id=c['c_id'], p_id=id, user=c['author'], time=c['time'], cmnt_text=c['text'], padding=padding)
-        # out += html_subcmnt.format(c_id = c['c_id'], list_cmnts=generate_comments(cmnts, c['c_id']))
+        out += generate_comments(cmnts, c['c_id'])
     return out
-    # html_HEAD_cmnt.format(len_cmnts=len(cmnts), list_cmnts=out)
 
 def prepare_html(topic, with_comments=False):
     t = topic
@@ -169,7 +148,7 @@ def save_html(topic_id, filename, with_comments=False, project='h'):
             ht = GeektimesTopic(topic_id)
         else:
             ht = HabraTopic(topic_id)
-        print('comments_cnt=', ht.comments_count())
+        # print('comments_cnt=', ht.comments_count())
         html = prepare_html(ht, with_comments=with_comments)
         f.write(html)
         # TODO: get all images and css
